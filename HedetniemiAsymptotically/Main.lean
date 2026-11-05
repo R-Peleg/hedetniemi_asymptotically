@@ -1621,4 +1621,12 @@ theorem lemma7_expected_shortCycles {V : Type*} [Fintype V] [LinearOrder V]
     binomialRandom_expected_cyclePlacements]
   exact lemma7_cycle_placement_budget_ennreal hN p hp
 
+/-- The short-cycle failure probability in Lemma 7 is at most one half. -/
+theorem lemma7_shortCycle_bad_probability {V : Type*} [Fintype V] [LinearOrder V]
+    (hN : Fintype.card V = 2000000) (p : I) (hp : (p : ℝ) = 1 / 125000) :
+    SimpleGraph.binomialRandom V p
+      {G | 230000 < ∑ m ∈ Finset.range 3, (presentCyclePlacements G m).card} ≤ 1 / 2 :=
+  shortCycle_markov_measure_le _ (lemma7_expected_shortCycles hN p hp)
+
+
 end Hedetniemi
