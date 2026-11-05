@@ -24,6 +24,8 @@ import HedetniemiAsymptotically.CycleTemplates
 import HedetniemiAsymptotically.PlaceCycleEdges
 import HedetniemiAsymptotically.CyclePlacement
 import HedetniemiAsymptotically.CyclePlacementProperties
+import HedetniemiAsymptotically.PresentCyclePlacements
+import HedetniemiAsymptotically.InducedIndependence
 import Mathlib.Logic.Equiv.Fintype
 import Mathlib.Combinatorics.SetFamily.KruskalKatona
 import Mathlib.Tactic.Ring
@@ -1249,5 +1251,28 @@ theorem six_le_egirth_induce_of_hit_cyclePlacements {V : Type*} [LinearOrder V]
   change φ y ∈ D
   rw [hy]
   exact hxD
+
+/-- Deleting one vertex from each present short cycle removes all short cycles. -/
+theorem exists_shortCycle_deletion {V : Type*} [Fintype V] [LinearOrder V]
+    (G : SimpleGraph V) :
+    ∃ D : Finset V,
+      D.card ≤ ∑ m ∈ Finset.range 3, (presentCyclePlacements G m).card ∧
+      6 ≤ (G.induce {v | v ∉ D}).egirth := by
+  classical
+  have hn (m : ℕ) (P : CyclePlacement V m) : P.1.val.Nonempty := by
+    apply Finset.card_pos.mp
+    rw [P.1.property]
+    omega
+  let pick (m : ℕ) (P : CyclePlacement V m) := P.1.val.min' (hn m P)
+  let D := (Finset.range 3).biUnion (fun m ↦ (presentCyclePlacements G m).image (pick m))
+  refine ⟨D, ?_, ?_⟩
+  · exact (Finset.card_biUnion_le).trans (Finset.sum_le_sum (fun m _ ↦ Finset.card_image_le))
+  · apply six_le_egirth_induce_of_hit_cyclePlacements
+    intro m hm P hP
+    refine ⟨pick m P, Finset.min'_mem _ _, ?_⟩
+    apply Finset.mem_biUnion.mpr
+    refine ⟨m, Finset.mem_range.mpr (by omega), ?_⟩
+    apply Finset.mem_image.mpr
+    exact ⟨P, (mem_presentCyclePlacements G P).mpr hP, rfl⟩
 
 end Hedetniemi
