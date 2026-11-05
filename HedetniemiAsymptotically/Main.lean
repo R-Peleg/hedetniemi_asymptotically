@@ -1085,4 +1085,18 @@ theorem lemma6_rounded_chromatic_bound {V : Type*} [Fintype V] [DecidableEq V]
   rw [hf]
   exact hno
 
+/-- Projecting an independent set of `G ⊠ K_q` to `G` preserves independence.
+This is the counting property behind the strong-product lower bound in Theorem 1. -/
+theorem strongProduct_indepSet_project {V W : Type*} (G : SimpleGraph V)
+    {S : Set (V × W)} (hS : (strongProduct G (⊤ : SimpleGraph W)).IsIndepSet S) :
+    G.IsIndepSet (Prod.fst '' S) := by
+  intro v hv w hw hne hadj
+  obtain ⟨x, hx, rfl⟩ := hv
+  obtain ⟨y, hy, rfl⟩ := hw
+  apply hS hx hy (fun h ↦ hne (congrArg Prod.fst h))
+  refine ⟨Or.inr hadj, ?_, fun h ↦ hne (congrArg Prod.fst h)⟩
+  by_cases hxy : x.2 = y.2
+  · exact Or.inl hxy
+  · exact Or.inr (by simpa using hxy)
+
 end Hedetniemi
