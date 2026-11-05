@@ -18,4 +18,14 @@ theorem fractionalChromaticNumber_nonneg {V : Type*} [Fintype V] [DecidableEq V]
   rintro y ⟨χ, rfl⟩
   exact χ.totalWeight_nonneg
 
+/-- Any feasible fractional coloring bounds the fractional chromatic number above. -/
+theorem fractionalChromaticNumber_le_totalWeight {V : Type*} [Fintype V] [DecidableEq V]
+    {G : SimpleGraph V} (χ : FractionalColoring G) : fractionalChromaticNumber G ≤ χ.totalWeight := by
+  unfold fractionalChromaticNumber
+  have hb : BddBelow (Set.range (fun ψ : FractionalColoring G ↦ ψ.totalWeight)) := by
+    refine ⟨0, ?_⟩
+    rintro y ⟨ψ, rfl⟩
+    exact ψ.totalWeight_nonneg
+  exact csInf_le hb ⟨χ, rfl⟩
+
 end Hedetniemi
