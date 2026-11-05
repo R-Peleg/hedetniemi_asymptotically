@@ -150,6 +150,34 @@ theorem large_vertexColorFiber_isRobust {V C D : Type*} [Fintype V] [Fintype C]
     · exact hmatch ⟨w, hw, u, heq⟩
   exact (Nat.not_le_of_gt hlarge) hsmall
 
+/-- A large fiber also contains a map taking its primary color only at its
+specified vertex. This supplies the support hypothesis in the clique step
+of Lemma 5. -/
+theorem large_vertexColorFiber_has_unique_support {V C D : Type*}
+    [Fintype V] [Fintype C] [DecidableEq V] [DecidableEq C] {G : Graph V}
+    (χ : (exponentialGraph G C).Coloring (C ⊕ D)) (v : V) (b : C)
+    (hlarge : Fintype.card V ^ 2 * Fintype.card C ^ (Fintype.card V - 2) <
+      (vertexColorFiber χ v b).card) :
+    ∃ f : V → C, χ.val f = Sum.inl b ∧ ∀ w, f w = b → w = v := by
+  classical
+  by_contra hnone
+  have hsmall : (vertexColorFiber χ v b).card ≤
+      Fintype.card V ^ 2 * Fintype.card C ^ (Fintype.card V - 2) := by
+    apply le_trans _ (card_maps_with_secondary_match_le v b (fun _ : V ↦ b))
+    apply Finset.card_le_card
+    intro f hf
+    obtain ⟨hχf, hfv⟩ := (mem_vertexColorFiber χ v b f).mp hf
+    have hsecond : ∃ w, w ≠ v ∧ f w = b := by
+      by_contra h
+      apply hnone
+      refine ⟨f, hχf, ?_⟩
+      intro w hwb
+      by_contra hw
+      exact h ⟨w, hw, hwb⟩
+    obtain ⟨w, hw, hwb⟩ := hsecond
+    exact Finset.mem_filter.mpr ⟨Finset.mem_univ _, hfv, w, hw, v, hwb⟩
+  exact (Nat.not_le_of_gt hlarge) hsmall
+
 /-- Lemma 3. A coloring with finitely many primary colors can be made suited
 by permuting its colors. Taking `C = Fin c` and `D = Fin t` gives the paper's
 `(c+t)`-coloring statement. -/
