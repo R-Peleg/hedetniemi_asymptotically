@@ -1607,4 +1607,16 @@ theorem lemma7_independent_set_bad_probability {V : Type*} [Fintype V] [Decidabl
   rw [hN] at h
   exact h.trans_lt (lemma7_independent_set_union_budget_ennreal p hp)
 
+/-- The short-cycle expectation estimate in Lemma 7. -/
+theorem lemma7_expected_shortCycles {V : Type*} [Fintype V] [LinearOrder V]
+    (hN : Fintype.card V = 2000000) (p : I) (hp : (p : ℝ) = 1 / 125000) :
+    (∫⁻ G, ((∑ m ∈ Finset.range 3, (presentCyclePlacements G m).card : ℕ) : ℝ≥0∞)
+      ∂SimpleGraph.binomialRandom V p) ≤ 115000 := by
+  simp only [Nat.cast_sum]
+  rw [lintegral_finsetSum (f := fun m G ↦ ((presentCyclePlacements G m).card : ℝ≥0∞))
+    (Finset.range 3) (fun _ _ ↦ Measurable.of_discrete)]
+  simp only [Finset.sum_range_succ, Finset.sum_range_zero, zero_add,
+    binomialRandom_expected_cyclePlacements]
+  exact lemma7_cycle_placement_budget_ennreal hN p hp
+
 end Hedetniemi
