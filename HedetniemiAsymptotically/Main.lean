@@ -19,6 +19,8 @@ import HedetniemiAsymptotically.FiniteNuMap
 import HedetniemiAsymptotically.Recoloring
 import HedetniemiAsymptotically.ConstructionDelta
 import HedetniemiAsymptotically.FractionalChromaticLowerBound
+import HedetniemiAsymptotically.BinomialEstimate
+import HedetniemiAsymptotically.CycleTemplates
 import Mathlib.Logic.Equiv.Fintype
 import Mathlib.Combinatorics.SetFamily.KruskalKatona
 import Mathlib.Tactic.Ring
@@ -1165,5 +1167,20 @@ theorem strongProduct_coloring_card_bound {V W C : Type*}
       intro x hx y hy _ hxy
       exact χ.valid hxy ((Finset.mem_filter.mp hx).2.trans (Finset.mem_filter.mp hy).2.symm)
     _ = Fintype.card C * G.indepNum := by simp
+
+/-- The explicit independent-set union estimate in Lemma 7. The proof
+uses symbolic exponential bounds instead of evaluating the huge binomial
+coefficient or power. -/
+theorem lemma7_independent_set_union_budget :
+    ((2000000 : ℕ).choose 570000 : ℝ) *
+      (1 - (1 / 125000 : ℝ)) ^ ((570000 : ℕ).choose 2) < 1 / 4 := by
+  calc
+    _ ≤ Real.exp ((11 / 10 : ℝ) * 2000000 -
+        (2 / 3 : ℝ) * (2000000 - 570000 : ℕ) -
+        (1 / 125000 : ℝ) * ((570000 : ℕ).choose 2)) :=
+      choose_mul_one_sub_pow_le_exp 2000000 570000 ((570000 : ℕ).choose 2)
+        (by norm_num) (1 / 125000) (by norm_num)
+    _ ≤ Real.exp (-2) := Real.exp_le_exp.mpr (by norm_num [Nat.choose_two_right])
+    _ < 1 / 4 := exp_neg_two_lt_quarter
 
 end Hedetniemi
