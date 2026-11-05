@@ -4,6 +4,7 @@ import HedetniemiAsymptotically.RobustColor
 import HedetniemiAsymptotically.IndependentSet
 import HedetniemiAsymptotically.MapCounting
 import HedetniemiAsymptotically.VertexColorFiber
+import HedetniemiAsymptotically.TriangleFree
 import Mathlib.Logic.Equiv.Fintype
 import Mathlib.Combinatorics.SetFamily.KruskalKatona
 
@@ -230,5 +231,19 @@ theorem large_vertexColorFibers_form_clique {V C D : Type*}
     exact large_vertexColorFiber_isRobust χ v b hv
   · intro v hv
     exact large_vertexColorFiber_has_unique_support χ v b hv
+
+/-- In the triangle-free setting of Lemma 5, every set `V_b` has size at most two. -/
+theorem large_vertexColorFibers_card_le_two {V C D : Type*}
+    [Fintype V] [Fintype C] [DecidableEq V] [DecidableEq C] {G : Graph V}
+    (hG : G.IsTriangleFree)
+    (χ : (exponentialGraph G C).Coloring (C ⊕ D)) (b : C) :
+    (Finset.univ.filter (fun v ↦
+      Fintype.card V ^ 2 * Fintype.card C ^ (Fintype.card V - 2) <
+        (vertexColorFiber χ v b).card)).card ≤ 2 := by
+  classical
+  apply hG.card_clique_le_two
+  intro v hv u hu hne
+  exact large_vertexColorFibers_form_clique χ b v (Finset.mem_filter.mp hv).2
+    u (Finset.mem_filter.mp hu).2 hne
 
 end Hedetniemi
