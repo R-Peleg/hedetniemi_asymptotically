@@ -42,7 +42,7 @@ import Mathlib.Topology.UnitInterval
 /-! Proofs appearing in He and Wigderson, *Hedetniemi's conjecture is
 asymptotically false* (arXiv:1906.06783v3). -/
 namespace Hedetniemi
-open MeasureTheory unitInterval
+open MeasureTheory
 open scoped ENNReal
 
 /-- The reduction in Lemma 4: maps in an independent family have intersecting
@@ -1548,6 +1548,8 @@ theorem exists_graph_of_bad_event_bounds {V : Type*} [Fintype V] [LinearOrder V]
   refine ⟨G, (indepNum_lt_of_no_independent_set G 570000 ?_).le, Nat.le_of_not_gt hA⟩
   intro S hS hindS
   exact hB ⟨S, hS, hindS⟩
+
+open unitInterval
 
 /-- The independent-set numerical bound in the value type of probability measures. -/
 theorem lemma7_independent_set_union_budget_ennreal (p : I) (hp : (p : ℝ) = 1 / 125000) :
