@@ -15,4 +15,11 @@ theorem robustError_pow_four (n c t : ℕ) :
   rw [show ∀ z : ℝ, z ^ 4 = (z ^ 2) ^ 2 by intro z; ring,
     Real.sq_sqrt (Real.sqrt_nonneg _), Real.sq_sqrt (by positivity)]
 
+theorem robustError_pos {n c t : ℕ} (hn : 0 < n) (hc : 0 < c) :
+    0 < robustError n c t := by
+  unfold robustError
+  apply Real.sqrt_pos.mpr
+  apply Real.sqrt_pos.mpr
+  positivity
+
 end Hedetniemi
