@@ -1275,4 +1275,28 @@ theorem exists_shortCycle_deletion {V : Type*} [Fintype V] [LinearOrder V]
     apply Finset.mem_image.mpr
     exact ⟨P, (mem_presentCyclePlacements G P).mpr hP, rfl⟩
 
+/-- The deterministic deletion step in Lemma 7, including the vertex and
+fractional-chromatic bounds needed in the final construction. -/
+theorem lemma7_deletion_conclusion {V : Type*} [Fintype V] [LinearOrder V]
+    (G : SimpleGraph V) (hvertices : Fintype.card V = 2000000)
+    (hind : G.indepNum ≤ 570000)
+    (hcycles : ∑ m ∈ Finset.range 3, (presentCyclePlacements G m).card ≤ 230000) :
+    ∃ D : Finset V,
+      1770000 ≤ Fintype.card {v // v ∉ D} ∧
+      Fintype.card {v // v ∉ D} ≤ 2000000 ∧
+      6 ≤ (G.induce {v | v ∉ D}).egirth ∧
+      (31 / 10 : ℝ) ≤ fractionalChromaticNumber (G.induce {v | v ∉ D}) := by
+  classical
+  obtain ⟨D, hD, hgirth⟩ := exists_shortCycle_deletion G
+  have hcard : Fintype.card {v // v ∉ D} = Fintype.card V - D.card := by
+    rw [Fintype.card_subtype_compl]
+    simp
+  have hlow : 1770000 ≤ Fintype.card {v // v ∉ D} := by
+    rw [hcard, hvertices]
+    omega
+  refine ⟨D, hlow, ?_, hgirth, ?_⟩
+  · rw [hcard, hvertices]
+    omega
+  · exact lemma7_fractional_bound_of_indepNum _ hlow ((indepNum_induce_le G _).trans hind)
+
 end Hedetniemi
