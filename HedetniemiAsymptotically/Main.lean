@@ -403,4 +403,37 @@ theorem log_factor_gt {r a : ℝ} (hr : 0 < r) (hrhalf : r ≤ 1 / 2)
     nlinarith [mul_nonneg (show 0 ≤ 1 - a by linarith) (show 0 ≤ 1 - 2 * r by linarith)]
   exact (mul_le_mul_of_nonpos_right hcoef (Real.log_nonpos hr.le hr1.le)).trans_lt hlog
 
+/-- The normalized product estimate in Lemma 5. If the total deficit from
+one is at most two, factors all strictly above `r ≤ 1/2` have product
+strictly greater than `r^4`. -/
+theorem normalized_product_gt_fourth {V : Type*} [Fintype V]
+    (a : V → ℝ) {r : ℝ} (hr : 0 < r) (hrhalf : r ≤ 1 / 2)
+    (ha : ∀ v, r < a v) (ha1 : ∀ v, a v ≤ 1)
+    (hsum : ∑ v, (1 - a v) ≤ 2) : r ^ 4 < ∏ v, a v := by
+  classical
+  have hr1 : r < 1 := by linarith
+  by_cases hall : ∀ v, a v = 1
+  · simp only [hall, Finset.prod_const_one]
+    calc
+      r ^ 4 ≤ (1 / 2 : ℝ) ^ 4 := pow_le_pow_left₀ hr.le hrhalf 4
+      _ < 1 := by norm_num
+  obtain ⟨v, hv⟩ := not_forall.mp hall
+  have hpoint (w : V) : 2 * (1 - a w) * Real.log r ≤ Real.log (a w) := by
+    by_cases hw : a w = 1
+    · simp [hw]
+    · exact (log_factor_gt hr hrhalf (ha w) (lt_of_le_of_ne (ha1 w) hw)).le
+  have hstrict : (∑ w, 2 * (1 - a w) * Real.log r) < ∑ w, Real.log (a w) := by
+    apply Finset.sum_lt_sum (fun w _ ↦ hpoint w)
+    exact ⟨v, Finset.mem_univ _, log_factor_gt hr hrhalf (ha v)
+      (lt_of_le_of_ne (ha1 v) hv)⟩
+  rw [← Finset.sum_mul, ← Finset.mul_sum] at hstrict
+  have hbase : 4 * Real.log r ≤ 2 * (∑ w, (1 - a w)) * Real.log r :=
+    mul_le_mul_of_nonpos_right (by linarith) (Real.log_nonpos hr.le hr1.le)
+  have hlog : Real.log (r ^ 4) < Real.log (∏ w, a w) := by
+    rw [Real.log_pow, Real.log_prod (fun w _ ↦ (hr.trans (ha w)).ne')]
+    norm_num
+    exact hbase.trans_lt hstrict
+  exact (Real.log_lt_log_iff (pow_pos hr 4)
+    (Finset.prod_pos (fun w _ ↦ hr.trans (ha w)))).mp hlog
+
 end Hedetniemi
