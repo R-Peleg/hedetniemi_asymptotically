@@ -897,4 +897,30 @@ theorem exists_self_colored_mu_maps {V : Type*} {G : SimpleGraph V} {q c t : ℕ
     rw [her i, her j, hij]
   exact ⟨⟨r, hrinj⟩, hrhigh, hrdisjoint, hrcolor⟩
 
+/-- The discrete core of Lemma 6. These explicit inequalities are the
+conditions verified for the paper's asymptotic choices of `c`, `t`, and `q`.
+They force the exponential graph of the strong product to have no
+`(c+t)`-coloring, including when it has loops. -/
+theorem lemma6_discrete_uncolorability {V : Type*} [Fintype V] [DecidableEq V]
+    {G : SimpleGraph V} {q c t : ℕ} (hG : 6 ≤ G.egirth)
+    (hn : 4 ≤ Fintype.card V)
+    (hc : 16 * (Fintype.card V * t + Fintype.card V ^ 3) ≤ c)
+    (hcq : 3 * q + 3 * t + 2 ≤ c)
+    (herror : ((2 * q + t + 1 : ℕ) : ℝ) ≤
+      (c : ℝ) - robustError (Fintype.card V) c t) :
+    IsEmpty ((exponentialGraph (Graph.ofSimpleGraph
+      (strongProduct G (⊤ : SimpleGraph (Fin q)))) (Fin c)).Coloring (Fin c ⊕ Fin t)) := by
+  refine ⟨fun χ ↦ ?_⟩
+  obtain ⟨χ, hχ⟩ := exists_suited_coloring _ χ
+  have hq : 2 * q ≤ c := by omega
+  obtain ⟨v, hv⟩ := exists_many_robust_colors (loopedGraph_triangleFree_of_six_le_egirth hG)
+    (restrictExponentialColoring χ) hχ.restrictExponentialColoring hn hc
+  have hcount : 2 * q + t + 1 ≤ (robustColors (restrictExponentialColoring χ) v).card := by
+    exact_mod_cast herror.trans hv
+  obtain ⟨σ, hσ⟩ := exists_high_robust_colors (restrictExponentialColoring χ) v hcount
+  obtain ⟨r, hrhigh, hrdisjoint, hrcolor⟩ :=
+    exists_self_colored_mu_maps hG χ hχ v hq hcq σ
+  exact lemma6_configuration_impossible χ hχ v hq r σ r.injective σ.injective
+    hrdisjoint hrhigh (fun i ↦ (hσ i).1) (fun i ↦ (hσ i).2) hrcolor
+
 end Hedetniemi
