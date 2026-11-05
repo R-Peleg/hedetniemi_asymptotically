@@ -22,4 +22,17 @@ noncomputable def singletonFractionalColoring {V : Type*} [Fintype V] [Decidable
       (f := fun S : Finset V ↦ if S.card = 1 then (1 : ℝ) else 0)
       (fun S _ ↦ hnonneg S) hmem
 
+/-- The singleton coloring has total weight equal to the number of vertices. -/
+theorem singletonFractionalColoring_totalWeight {V : Type*} [Fintype V] [DecidableEq V]
+    (G : SimpleGraph V) : (singletonFractionalColoring G).totalWeight = Fintype.card V := by
+  classical
+  change (∑ S : Finset V, if S.card = 1 then (1 : ℝ) else 0) = Fintype.card V
+  rw [← Finset.sum_filter]
+  have heq : Finset.univ.filter (fun S : Finset V ↦ S.card = 1) =
+      (Finset.univ : Finset V).powersetCard 1 := by
+    ext S
+    simp
+  rw [heq]
+  simp
+
 end Hedetniemi
