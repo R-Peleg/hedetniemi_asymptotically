@@ -84,6 +84,44 @@ theorem independent_map_layer_card_le {V : Type*} [Fintype V] [Nonempty V]
       ext f
       simp [B, Finset.mem_powersetCard, Set.mem_range, and_comm]
 
+/-- Lemma 4. An independent family in an exponential graph on `n` nonempty
+vertices has size at most `n * c^(n-1)`, provided `c ≥ 2*n`. -/
+theorem exponential_independent_card_le {V : Type*} [Fintype V] [Nonempty V]
+    [DecidableEq V] (G : Graph V) (c : ℕ) (hc : 2 * Fintype.card V ≤ c)
+    (I : Finset (V → Fin c))
+    (hI : (exponentialGraph G (Fin c)).IsIndependent (I : Set (V → Fin c))) :
+    I.card ≤ Fintype.card V * c ^ (Fintype.card V - 1) := by
+  classical
+  have hn : 0 < Fintype.card V := Fintype.card_pos
+  have hcpos : 0 < c := by omega
+  let b : Fin c := ⟨0, hcpos⟩
+  let K := Finset.Icc 1 (Fintype.card V)
+  let star := Finset.univ.filter (fun f : V → Fin c ↦ b ∈ Set.range f)
+  have hrange (f : V → Fin c) : (Finset.univ.image f).card ∈ K := by
+    apply Finset.mem_Icc.mpr
+    constructor
+    · exact Finset.card_pos.mpr (Finset.univ_nonempty.image f)
+    · exact (Finset.card_image_le).trans_eq (Finset.card_univ)
+  have hpartition (F : Finset (V → Fin c)) :
+      F.card = ∑ k ∈ K, (F.filter (fun f ↦ (Finset.univ.image f).card = k)).card :=
+    Finset.card_eq_sum_card_fiberwise (fun f _ ↦ hrange f)
+  calc
+    I.card = ∑ k ∈ K, (I.filter (fun f ↦ (Finset.univ.image f).card = k)).card :=
+      hpartition I
+    _ ≤ ∑ k ∈ K, (Finset.univ.filter (fun f : V → Fin c ↦
+        b ∈ Set.range f ∧ (Finset.univ.image f).card = k)).card := by
+      apply Finset.sum_le_sum
+      intro k hk
+      obtain ⟨hkpos, hkn⟩ := Finset.mem_Icc.mp hk
+      exact independent_map_layer_card_le I hI b hkpos (by omega)
+    _ = star.card := by
+      rw [hpartition star]
+      apply Finset.sum_congr rfl
+      intro k _
+      simp only [star, Finset.filter_filter]
+    _ ≤ Fintype.card V * c ^ (Fintype.card V - 1) := by
+      simpa [star] using card_maps_containing_color_le (V := V) b
+
 /-- Lemma 3. A coloring with finitely many primary colors can be made suited
 by permuting its colors. Taking `C = Fin c` and `D = Fin t` gives the paper's
 `(c+t)`-coloring statement. -/
