@@ -812,4 +812,89 @@ theorem suited_finiteMuMap_color_eq_parameter {V : Type*} {G : SimpleGraph V} {q
   have hlarge : 2 * q ≤ muMap G v q r.val x := by rw [hnat]; exact hb
   exact Fin.ext (hnat.symm.trans (muMap_eq_parameter_of_ge G v x hlarge))
 
+/-- Select the self-colored maps `μ_{r_i}` in Lemma 6. There are `c-q`
+distinct clique colors; discarding the low colors, the chosen `σ` colors,
+and the secondary colors leaves at least `t+1` usable parameters. -/
+theorem exists_self_colored_mu_maps {V : Type*} {G : SimpleGraph V} {q c t : ℕ}
+    (hG : 6 ≤ G.egirth)
+    (χ : (exponentialGraph (Graph.ofSimpleGraph
+      (strongProduct G (⊤ : SimpleGraph (Fin q)))) (Fin c)).Coloring (Fin c ⊕ Fin t))
+    (hχ : IsSuited χ) (v : V) (hq : 2 * q ≤ c) (hc : 3 * q + 3 * t + 2 ≤ c)
+    (σ : Fin (t + 1) → Fin c) :
+    ∃ r : Fin (t + 1) ↪ Fin c, (∀ i, 2 * q ≤ (r i).val) ∧
+      (∀ i j, r i ≠ σ j) ∧
+      ∀ i, χ.val (finiteMuMap G v hq (r i)) = Sum.inl (r i) := by
+  classical
+  let P := Finset.univ.filter (fun r : Fin c ↦ q ≤ r.val)
+  let f (r : Fin c) := χ.val (finiteMuMap G v hq r)
+  let A := P.image f
+  let low := (Finset.univ : Finset (Fin c)).filter (fun b ↦ b.val < 2 * q)
+  let B := (low.image (Sum.inl : Fin c → Fin c ⊕ Fin t) ∪
+    (Finset.univ.image σ).image Sum.inl) ∪ Finset.univ.image Sum.inr
+  have hlow (k : ℕ) : ((Finset.univ : Finset (Fin c)).filter (fun b ↦ b.val < k)).card ≤ k := by
+    calc
+      _ ≤ (Finset.range k).card := by
+        apply Finset.card_le_card_of_injOn Fin.val
+        · intro b hb
+          exact Finset.mem_range.mpr (Finset.mem_filter.mp hb).2
+        · intro a _ b _ hab
+          exact Fin.ext hab
+      _ = k := Finset.card_range k
+  have hP : c - q ≤ P.card := by
+    have hpartition := Finset.card_filter_add_card_filter_not
+      (s := (Finset.univ : Finset (Fin c))) (fun r ↦ q ≤ r.val)
+    have hlowq := hlow q
+    simp only [Finset.card_univ, Fintype.card_fin, not_le] at hpartition
+    dsimp [P]
+    omega
+  have hinj : Set.InjOn f (P : Set (Fin c)) := by
+    intro r hr s hs hcolor
+    by_contra hrs
+    apply χ.property (coProper_finiteMap_iff.mpr
+      (muMap_coproper hG v (Finset.mem_filter.mp hr).2 (Finset.mem_filter.mp hs).2
+        (fun h ↦ hrs (Fin.ext h)))) hcolor
+  have hA : A.card = P.card := Finset.card_image_iff.mpr hinj
+  have hB : B.card ≤ 2 * q + (t + 1) + t := by
+    calc
+      _ ≤ (low.image (Sum.inl : Fin c → Fin c ⊕ Fin t)).card +
+          ((Finset.univ.image σ).image (Sum.inl : Fin c → Fin c ⊕ Fin t)).card +
+          (Finset.univ.image (Sum.inr : Fin t → Fin c ⊕ Fin t)).card :=
+        le_trans (Finset.card_union_le _ _) (Nat.add_le_add_right (Finset.card_union_le _ _) _)
+      _ ≤ low.card + (t + 1) + t := by
+        apply Nat.add_le_add
+        · apply Nat.add_le_add Finset.card_image_le
+          exact (Finset.card_image_le).trans (by simpa using Finset.card_image_le (s := Finset.univ) (f := σ))
+        · simpa using Finset.card_image_le (s := Finset.univ) (f := (Sum.inr : Fin t → Fin c ⊕ Fin t))
+      _ ≤ _ := Nat.add_le_add_right (Nat.add_le_add_right (hlow (2 * q)) _) _
+  have hgood : t + 1 ≤ (A \ B).card := by
+    have hdiff := Finset.card_le_card_sdiff_add_card (s := A) (t := B)
+    omega
+  obtain ⟨e, he⟩ := Function.Embedding.exists_of_card_le_finset
+    (α := Fin (t + 1)) (s := A \ B) (by simpa using hgood)
+  have hex (i : Fin (t + 1)) : ∃ r : Fin c, e i = Sum.inl r ∧ 2 * q ≤ r.val ∧
+      (∀ j, r ≠ σ j) ∧ f r = Sum.inl r := by
+    obtain ⟨hiA, hiB⟩ := Finset.mem_sdiff.mp (he ⟨i, rfl⟩)
+    obtain ⟨r, hrP, hfr⟩ := Finset.mem_image.mp hiA
+    cases hei : e i with
+    | inr d =>
+      exact (hiB (by simp [B, hei])).elim
+    | inl b =>
+      have hbhigh : 2 * q ≤ b.val := by
+        by_contra h
+        apply hiB
+        simp [B, hei, low, Nat.lt_of_not_ge h]
+      have hbr : b = r := suited_finiteMuMap_color_eq_parameter χ hχ v hq r b hbhigh
+        (hfr.trans hei)
+      subst r
+      refine ⟨b, rfl, hbhigh, ?_, hfr.trans hei⟩
+      intro j hbj
+      apply hiB
+      simp [B, hei, hbj]
+  choose r her hrhigh hrdisjoint hrcolor using hex
+  have hrinj : Function.Injective r := by
+    intro i j hij
+    apply e.injective
+    rw [her i, her j, hij]
+  exact ⟨⟨r, hrinj⟩, hrhigh, hrdisjoint, hrcolor⟩
+
 end Hedetniemi
