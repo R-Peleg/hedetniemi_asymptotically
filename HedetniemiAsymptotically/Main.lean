@@ -1559,4 +1559,20 @@ theorem lemma7_independent_set_union_budget_ennreal (p : I) (hp : (p : ℝ) = 1 
     ENNReal.coe_toReal, coe_toNNReal, coe_symm_eq, hp, ENNReal.toReal_div,
     ENNReal.toReal_one, ENNReal.toReal_ofNat] using lemma7_independent_set_union_budget
 
+/-- The short-cycle expectation budget in the value type of probability measures. -/
+theorem lemma7_cycle_placement_budget_ennreal {V : Type*} [Fintype V] [DecidableEq V]
+    (hN : Fintype.card V = 2000000) (p : I) (hp : (p : ℝ) = 1 / 125000) :
+    (Fintype.card (CyclePlacement V 0) : ℝ≥0∞) * (toNNReal p : ℝ≥0∞) ^ 3 +
+      (Fintype.card (CyclePlacement V 1) : ℝ≥0∞) * (toNNReal p : ℝ≥0∞) ^ 4 +
+      (Fintype.card (CyclePlacement V 2) : ℝ≥0∞) * (toNNReal p : ℝ≥0∞) ^ 5 ≤ 115000 := by
+  have hf (m : ℕ) : (Fintype.card (CyclePlacement V m) : ℝ≥0∞) *
+      (toNNReal p : ℝ≥0∞) ^ (m + 3) ≠ ∞ :=
+    ENNReal.mul_ne_top (ENNReal.natCast_ne_top _) (ENNReal.pow_ne_top ENNReal.coe_ne_top)
+  have hf01 := ENNReal.add_ne_top.mpr ⟨hf 0, hf 1⟩
+  apply (ENNReal.toReal_le_toReal (ENNReal.add_ne_top.mpr ⟨hf01, hf 2⟩) (by norm_num)).mp
+  rw [ENNReal.toReal_add hf01 (hf 2), ENNReal.toReal_add (hf 0) (hf 1)]
+  simpa only [ENNReal.toReal_mul, ENNReal.toReal_natCast, ENNReal.toReal_pow,
+    ENNReal.coe_toReal, coe_toNNReal, hp, ENNReal.toReal_ofNat] using
+      lemma7_cycle_placement_budget hN
+
 end Hedetniemi
