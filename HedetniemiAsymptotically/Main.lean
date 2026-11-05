@@ -1299,4 +1299,24 @@ theorem lemma7_deletion_conclusion {V : Type*} [Fintype V] [LinearOrder V]
     omega
   · exact lemma7_fractional_bound_of_indepNum _ hlow ((indepNum_induce_le G _).trans hind)
 
+/-- Integer rounding for the final construction, with an additive loss below four. -/
+theorem construction_rounding (δ : ℝ) (hδ : 0 ≤ δ) (hδsmall : δ ≤ 1 / 324)
+    (c : ℕ) :
+    ∃ q c' : ℕ, c' = ⌈(3 + 10 * δ) * q⌉₊ ∧ c' ≤ c ∧
+      (c : ℝ) - 4 < c' ∧ (c : ℝ) / (3 + 10 * δ) - 1 < q := by
+  let a := 3 + 10 * δ
+  have ha : 0 < a := by dsimp [a]; linarith
+  have hasmall : a < 4 := by dsimp [a]; linarith
+  let q := ⌊(c : ℝ) / a⌋₊
+  let c' := ⌈a * q⌉₊
+  have hqlo : (q : ℝ) ≤ (c : ℝ) / a := Nat.floor_le (by positivity)
+  have hqhi : (c : ℝ) / a < (q : ℝ) + 1 := Nat.lt_floor_add_one _
+  have hprod : a * q ≤ (c : ℝ) := by
+    simpa only [mul_comm] using (le_div_iff₀ ha).mp hqlo
+  have hceil : a * q ≤ (c' : ℝ) := Nat.le_ceil _
+  refine ⟨q, c', rfl, Nat.ceil_le.mpr hprod, ?_, ?_⟩
+  · have h := (div_lt_iff₀ ha).mp hqhi
+    nlinarith
+  · linarith
+
 end Hedetniemi
