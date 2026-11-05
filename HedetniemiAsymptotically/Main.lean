@@ -731,4 +731,48 @@ theorem finiteNuMap_not_robust_color {V : Type*} {G : SimpleGraph V} {q c t : �
   have hvalr : (finiteNuMap G v r σ w).val = r.val := nuMap_eq_on_closed hwclosed
   exact hrσ ((Fin.ext hvalr).symm.trans hval)
 
+/-- The final coloring contradiction in Lemma 6, once the families of
+robust colors `σ_i` and self-colored maps `μ_{r_i}` have been chosen. -/
+theorem lemma6_configuration_impossible {V : Type*} {G : SimpleGraph V} {q c t : ℕ}
+    (χ : (exponentialGraph (Graph.ofSimpleGraph
+      (strongProduct G (⊤ : SimpleGraph (Fin q)))) (Fin c)).Coloring (Fin c ⊕ Fin t))
+    (hχ : IsSuited χ) (v : V) (hq : 2 * q ≤ c)
+    (r σ : Fin (t + 1) → Fin c) (hrinj : Function.Injective r) (hσinj : Function.Injective σ)
+    (hdisjoint : ∀ i j, r i ≠ σ j)
+    (hrhigh : ∀ i, 2 * q ≤ (r i).val) (hσhigh : ∀ i, 2 * q ≤ (σ i).val)
+    (hrob : ∀ i, IsRobust (restrictExponentialColoring χ) v (σ i))
+    (hmu : ∀ i, χ.val (finiteMuMap G v hq (r i)) = Sum.inl (r i)) : False := by
+  classical
+  apply secondary_clique_impossible χ
+    (fun i ↦ exponentialLift (W := Fin q) (finiteNuMap G v (r i) (σ i)))
+  · intro i j hij
+    apply CoProper.exponentialLift
+    apply coProper_finiteMap_iff.mpr
+    apply nuMap_coproper_of_disjoint_colors
+    · exact fun heq ↦ hij (hrinj (Fin.ext heq))
+    · exact fun heq ↦ hdisjoint i j (Fin.ext heq)
+    · exact fun heq ↦ hdisjoint j i (Fin.ext heq.symm)
+    · exact fun heq ↦ hij (hσinj (Fin.ext heq))
+  · intro i
+    cases hcol : χ.val (exponentialLift (W := Fin q) (finiteNuMap G v (r i) (σ i))) with
+    | inl b =>
+      obtain ⟨x, hxb⟩ := hχ _ b hcol
+      have hb : b = r i ∨ b = σ i := by
+        have hnat : nuMap G v (r i).val (σ i).val x.1 = b.val := congrArg Fin.val hxb
+        unfold nuMap at hnat
+        split_ifs at hnat
+        · exact Or.inl (Fin.ext hnat.symm)
+        · exact Or.inr (Fin.ext hnat.symm)
+      rcases hb with rfl | rfl
+      · have hadj : (exponentialGraph (Graph.ofSimpleGraph
+            (strongProduct G (⊤ : SimpleGraph (Fin q)))) (Fin c)).Adj
+            (finiteMuMap G v hq (r i))
+            (exponentialLift (W := Fin q) (finiteNuMap G v (r i) (σ i))) := by
+          intro x y hxy heq
+          exact muMap_nuMap_coproper G v (hrhigh i) (hσhigh i)
+            (fun h ↦ hdisjoint i i (Fin.ext h)) hxy (congrArg Fin.val heq)
+        exact (χ.property hadj ((hmu i).trans hcol.symm)).elim
+      · exact (finiteNuMap_not_robust_color χ v (hdisjoint i i) (hrob i) hcol).elim
+    | inr d => exact ⟨d, rfl⟩
+
 end Hedetniemi
