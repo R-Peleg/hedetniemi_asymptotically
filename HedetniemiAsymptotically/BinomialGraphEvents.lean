@@ -21,4 +21,22 @@ theorem binomialRandom_contains_edges {V : Type*} [Fintype V]
     · exact fun h e he ↦ ⟨h he, hS e he⟩
   rw [heq]
   exact setBernoulli_contains_finset _ p S hS
+/-- The probability that all forbidden edges are absent. -/
+theorem binomialRandom_avoids_edges {V : Type*} [Fintype V]
+    (p : I) (S : Finset (Sym2 V)) (hS : ∀ e ∈ S, e ∈ Sym2.diagSetᶜ) :
+    SimpleGraph.binomialRandom V p {G | Disjoint (S : Set (Sym2 V)) G.edgeSet} =
+      (toNNReal (σ p) : ℝ≥0∞) ^ S.card := by
+  rw [SimpleGraph.binomialRandom_eq_map, Measure.map_apply SimpleGraph.measurable_fromEdgeSet
+    MeasurableSet.of_discrete]
+  have heq : SimpleGraph.fromEdgeSet ⁻¹' {G | Disjoint (S : Set (Sym2 V)) G.edgeSet} =
+      {E | Disjoint (S : Set (Sym2 V)) E} := by
+    ext E
+    simp only [Set.mem_preimage, Set.mem_ofPred_eq, SimpleGraph.edgeSet_fromEdgeSet]
+    constructor
+    · intro h
+      exact Set.disjoint_left.mpr (fun e heS heE ↦ Set.disjoint_left.mp h heS ⟨heE, hS e heS⟩)
+    · intro h
+      exact Set.disjoint_left.mpr (fun _ heS heE ↦ Set.disjoint_left.mp h heS heE.1)
+  rw [heq]
+  exact setBernoulli_avoids_finset _ p S hS
 end Hedetniemi
