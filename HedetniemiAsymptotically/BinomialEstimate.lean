@@ -70,4 +70,12 @@ theorem choose_mul_one_sub_pow_le_exp (n k m : ℕ) (hk : k ≤ n) (p : ℝ) (hp
       congr 1
       ring
 
+/-- A simple Taylor bound suffices for the final numerical probability comparison. -/
+theorem exp_neg_two_lt_quarter : Real.exp (-2) < (1 / 4 : ℝ) := by
+  have h := Real.quadratic_le_exp_of_nonneg (show (0 : ℝ) ≤ 2 by norm_num)
+  norm_num at h
+  rw [Real.exp_neg]
+  simpa only [one_div] using one_div_lt_one_div_of_lt (show (0 : ℝ) < 4 by norm_num)
+    (lt_of_lt_of_le (show (4 : ℝ) < 5 by norm_num) h)
+
 end Hedetniemi
