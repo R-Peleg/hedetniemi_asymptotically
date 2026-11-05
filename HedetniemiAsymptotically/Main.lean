@@ -1342,4 +1342,30 @@ theorem construction_rounded_gain (δ : ℝ)
     have hcq : (c : ℝ) < ((q : ℝ) + 1) * (3 + 10 / 324) := by nlinarith
     nlinarith
 
+/-- The base graph in the final construction inherits the required chromatic
+lower bound from the quantitative witness in Lemma 7. -/
+theorem lemma7_strongProduct_chromatic_bound {V : Type*} [Fintype V] [DecidableEq V]
+    (G : SimpleGraph V) (hvertices : 1770000 ≤ Fintype.card V)
+    (hind : G.indepNum ≤ 570000) (q : ℕ) :
+    (31 / 10 : ℝ) * q ≤
+      ((strongProduct G (⊤ : SimpleGraph (Fin q))).chromaticNumber.toNat : ℝ) := by
+  classical
+  let H := strongProduct G (⊤ : SimpleGraph (Fin q))
+  let k := H.chromaticNumber.toNat
+  have hfin : H.chromaticNumber ≠ ⊤ :=
+    (lt_of_le_of_lt H.chromaticNumber_le_card (ENat.natCast_lt_top _)).ne
+  have hcolor : H.Colorable k := by
+    apply SimpleGraph.chromaticNumber_le_iff_colorable.mp
+    rw [ENat.natCast_toNat hfin]
+  obtain ⟨χ⟩ := hcolor
+  have hcount := strongProduct_coloring_card_bound G χ
+  simp only [Fintype.card_fin] at hcount
+  have hbound : Fintype.card V * q ≤ k * 570000 := by
+    exact hcount.trans (Nat.mul_le_mul_left k hind)
+  have hN : (1770000 : ℝ) ≤ Fintype.card V := by exact_mod_cast hvertices
+  have hcountR : (Fintype.card V : ℝ) * q ≤ (k : ℝ) * 570000 := by exact_mod_cast hbound
+  have hNq := mul_le_mul_of_nonneg_right hN (Nat.cast_nonneg q)
+  change (31 / 10 : ℝ) * q ≤ (k : ℝ)
+  nlinarith
+
 end Hedetniemi
