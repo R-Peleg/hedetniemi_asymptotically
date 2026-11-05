@@ -460,4 +460,71 @@ theorem product_gt_fourth_scaled {V : Type*} [Fintype V]
   rw [div_pow, Finset.prod_div_distrib, Finset.prod_const, Finset.card_univ] at hprod
   exact (div_lt_div_iff₀ (pow_pos hc 4) (pow_pos hc (Fintype.card V))).mp hprod
 
+/-- Lemma 5 with the fourth root specified by its defining equation and
+the bound `x ≤ c/2`. The numerical hypothesis in the paper guarantees this
+bound. This form isolates the combinatorial/convexity argument from the
+elementary fourth-root arithmetic. -/
+theorem exists_many_robust_colors_of_fourth_power {V : Type*} [Fintype V] [Nonempty V]
+    [DecidableEq V] {G : Graph V} {c t : ℕ} (hG : G.IsTriangleFree)
+    (χ : (exponentialGraph G (Fin c)).Coloring (Fin c ⊕ Fin t)) (hχ : IsSuited χ)
+    (hn : 4 ≤ Fintype.card V) (hc : 2 * Fintype.card V ≤ c)
+    (x : ℝ) (hx : 0 < x) (hxhalf : x ≤ (c : ℝ) / 2)
+    (hxpow : x ^ 4 = ((Fintype.card V : ℝ) * t + (Fintype.card V : ℝ) ^ 3) * (c : ℝ) ^ 3) :
+    ∃ v, (c : ℝ) - x ≤ ((robustColors χ v).card : ℝ) := by
+  classical
+  let n := Fintype.card V
+  let s (v : V) : ℝ := (allowedColors χ v).card
+  have hn2 : 2 ≤ n := by dsimp [n]; omega
+  have hcpos : 0 < c := by omega
+  have hcR : (0 : ℝ) < c := by exact_mod_cast hcpos
+  have hsc (v : V) : s v ≤ c := by
+    dsimp [s]
+    exact_mod_cast (show (allowedColors χ v).card ≤ c by
+      simpa using Finset.card_le_univ (allowedColors χ v))
+  have hupper : (∏ v, s v) ≤ ((n : ℝ) * t + (n : ℝ) ^ 3) * (c : ℝ) ^ (n - 1) := by
+    have hcard : (∏ v, (allowedColors χ v).card) ≤
+        (n * t + n ^ 3) * c ^ (n - 1) := by
+      rw [← card_avoidingLargeFibers]
+      exact card_avoidingLargeFibers_le χ hχ hn2 hc
+    dsimp [s]
+    exact_mod_cast hcard
+  have hsum : ((n : ℝ) - 2) * c ≤ ∑ v, s v := by
+    have hcast : (((n - 2) * c : ℕ) : ℝ) ≤ ((∑ v, (allowedColors χ v).card : ℕ) : ℝ) := by
+      exact_mod_cast (show (n - 2) * c ≤ ∑ v, (allowedColors χ v).card by
+        simpa [n] using sum_card_allowedColors_ge hG χ)
+    simpa only [Nat.cast_mul, Nat.cast_sub hn2, Nat.cast_ofNat, Nat.cast_sum] using hcast
+  have hdef : (∑ v, ((c : ℝ) - s v)) ≤ 2 * c := by
+    have heq : (∑ v, ((c : ℝ) - s v)) = (n : ℝ) * c - ∑ v, s v := by
+      simp [Finset.sum_sub_distrib, n]
+    rw [heq]
+    linarith
+  have hex : ∃ v, s v ≤ x := by
+    by_contra hnone
+    have hs : ∀ v, x < s v := by
+      intro v
+      exact lt_of_not_ge (fun h ↦ hnone ⟨v, h⟩)
+    have hprod := product_gt_fourth_scaled s hcR hx hxhalf hs hsc hdef
+    have hmul := mul_le_mul_of_nonneg_right hupper (pow_nonneg hcR.le 4)
+    have heqpow : (((n : ℝ) * t + (n : ℝ) ^ 3) * (c : ℝ) ^ (n - 1)) * (c : ℝ) ^ 4 =
+        x ^ 4 * (c : ℝ) ^ n := by
+      rw [hxpow]
+      have he : n - 1 + 4 = 3 + n := by omega
+      calc
+        _ = ((n : ℝ) * t + (n : ℝ) ^ 3) * (c : ℝ) ^ (n - 1 + 4) := by
+          rw [pow_add]; ring
+        _ = _ := by rw [he, pow_add]; ring
+    rw [heqpow] at hmul
+    exact (not_lt_of_ge hmul) hprod
+  obtain ⟨v, hv⟩ := hex
+  refine ⟨v, ?_⟩
+  have hcardle : (allowedColors χ v).card ≤ c := by
+    simpa using Finset.card_le_univ (allowedColors χ v)
+  have hrob : (c : ℝ) - s v ≤ ((robustColors χ v).card : ℝ) := by
+    have hcast : ((c - (allowedColors χ v).card : ℕ) : ℝ) ≤
+        ((robustColors χ v).card : ℝ) := by
+      exact_mod_cast (show c - (allowedColors χ v).card ≤ (robustColors χ v).card by
+        simpa using card_robustColors_ge_excluded χ v)
+    simpa only [Nat.cast_sub hcardle] using hcast
+  linarith
+
 end Hedetniemi
