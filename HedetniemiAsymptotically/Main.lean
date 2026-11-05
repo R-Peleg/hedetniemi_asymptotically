@@ -26,6 +26,7 @@ import HedetniemiAsymptotically.CyclePlacement
 import HedetniemiAsymptotically.CyclePlacementProperties
 import HedetniemiAsymptotically.PresentCyclePlacements
 import HedetniemiAsymptotically.InducedIndependence
+import HedetniemiAsymptotically.BinomialGraphEvents
 import Mathlib.Logic.Equiv.Fintype
 import Mathlib.Combinatorics.SetFamily.KruskalKatona
 import Mathlib.Tactic.Ring
@@ -1574,5 +1575,15 @@ theorem lemma7_cycle_placement_budget_ennreal {V : Type*} [Fintype V] [Decidable
   simpa only [ENNReal.toReal_mul, ENNReal.toReal_natCast, ENNReal.toReal_pow,
     ENNReal.coe_toReal, coe_toNNReal, hp, ENNReal.toReal_ofNat] using
       lemma7_cycle_placement_budget hN
+
+/-- A fixed cycle placement occurs with one factor of p for every edge. -/
+theorem binomialRandom_cyclePlacement_probability {V : Type*} [Fintype V] [LinearOrder V]
+    (p : I) {m : ℕ} (P : CyclePlacement V m) :
+    SimpleGraph.binomialRandom V p
+      {G | ∀ e ∈ placeCycleEdges P.1.val P.1.property P.2.val, e ∈ G.edgeSet} =
+      (toNNReal p : ℝ≥0∞) ^ (m + 3) := by
+  have h := binomialRandom_contains_edges p (placeCycleEdges P.1.val P.1.property P.2.val)
+    (fun e he ↦ (cyclePlacement_properties P).2 e he)
+  simpa only [(cyclePlacement_properties P).1, Set.subset_def, Finset.mem_coe] using h
 
 end Hedetniemi
