@@ -97,4 +97,29 @@ theorem card_maps_with_images_le {V C : Type*} [Fintype V] [Fintype C]
   rw [hcount A hA, hcount B hB]
   exact Nat.mul_le_mul_right _ hcard
 
+/-- Fixing two distinct coordinates leaves exactly `|C|^(|V|-2)` maps. -/
+theorem card_maps_fixing_two {V C : Type*} [Fintype V] [Fintype C]
+    [DecidableEq V] [DecidableEq C] (v w : V) (hvw : v ≠ w) (a b : C) :
+    (univ.filter (fun f : V → C ↦ f v = a ∧ f w = b)).card =
+      Fintype.card C ^ (Fintype.card V - 2) := by
+  classical
+  let s : V → Finset C := Function.update (fun _ ↦ univ) v {a}
+  have hfirst : univ.filter (fun f : V → C ↦ f v = a) = Fintype.piFinset s := by
+    symm
+    simpa [s] using Fintype.piFinset_update_singleton_eq_filter_piFinset_eq
+      (fun _ : V ↦ (univ : Finset C)) v (mem_univ a)
+  have hcard : (fun j ↦ (s j).card) =
+      Function.update (fun _ : V ↦ Fintype.card C) v 1 := by
+    funext j
+    by_cases hj : j = v <;> simp [s, hj, Function.update_of_ne]
+  calc
+    _ = ((univ.filter (fun f : V → C ↦ f v = a)).filter (fun f ↦ f w = b)).card := by
+      rw [filter_filter]
+    _ = ∏ j ∈ univ.erase w, (s j).card := by
+      rw [hfirst]
+      exact Fintype.card_filter_piFinset_eq_of_mem s w (by simp [s, hvw.symm])
+    _ = _ := by
+      rw [hcard, prod_update_of_mem (by simp [hvw])]
+      simp [sdiff_singleton_eq_erase, card_erase_of_mem, hvw, Nat.sub_sub]
+
 end Hedetniemi
