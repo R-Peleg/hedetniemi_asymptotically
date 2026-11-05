@@ -4,6 +4,8 @@ import Mathlib.Algebra.Order.BigOperators.Group.Finset
 import Mathlib.Tactic.Positivity
 import Mathlib.Tactic.NormNum
 import Mathlib.Analysis.Complex.Exponential
+import Mathlib.Tactic.Linarith
+import Mathlib.Tactic.Ring
 
 namespace Hedetniemi
 
@@ -49,5 +51,23 @@ theorem choose_le_exp_bound (n k : ℕ) (hk : k ≤ n) :
   rw [Real.exp_sub]
   apply (le_div_iff₀ (Real.exp_pos _)).mpr
   simpa [mul_comm] using hm
+
+/-- Combine the binomial bound with `(1-p)^m ≤ exp(-pm)`. -/
+theorem choose_mul_one_sub_pow_le_exp (n k m : ℕ) (hk : k ≤ n) (p : ℝ) (hp : p ≤ 1) :
+    (n.choose k : ℝ) * (1 - p) ^ m ≤
+      Real.exp ((11 / 10 : ℝ) * n - (2 / 3 : ℝ) * (n - k : ℕ) - p * m) := by
+  have hbase : 1 - p ≤ Real.exp (-p) := by linarith [Real.add_one_le_exp (-p)]
+  have hp0 : 0 ≤ 1 - p := sub_nonneg.mpr hp
+  have hpow : (1 - p) ^ m ≤ Real.exp ((m : ℝ) * (-p)) := by
+    rw [Real.exp_nat_mul]
+    exact pow_le_pow_left₀ hp0 hbase m
+  calc
+    _ ≤ Real.exp ((11 / 10 : ℝ) * n - (2 / 3 : ℝ) * (n - k : ℕ)) *
+        Real.exp ((m : ℝ) * (-p)) :=
+      mul_le_mul (choose_le_exp_bound n k hk) hpow (pow_nonneg hp0 m) (Real.exp_nonneg _)
+    _ = _ := by
+      rw [← Real.exp_add]
+      congr 1
+      ring
 
 end Hedetniemi
