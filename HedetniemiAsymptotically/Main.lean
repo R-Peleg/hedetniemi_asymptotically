@@ -36,11 +36,12 @@ import Mathlib.Combinatorics.SimpleGraph.Girth
 import Mathlib.Algebra.Order.Floor.Ring
 import Mathlib.MeasureTheory.Integral.Lebesgue.Markov
 import Mathlib.MeasureTheory.Measure.Typeclasses.Probability
+import Mathlib.Topology.UnitInterval
 
 /-! Proofs appearing in He and Wigderson, *Hedetniemi's conjecture is
 asymptotically false* (arXiv:1906.06783v3). -/
 namespace Hedetniemi
-open MeasureTheory
+open MeasureTheory unitInterval
 open scoped ENNReal
 
 /-- The reduction in Lemma 4: maps in an independent family have intersecting
@@ -1546,5 +1547,16 @@ theorem exists_graph_of_bad_event_bounds {V : Type*} [Fintype V] [LinearOrder V]
   refine ⟨G, (indepNum_lt_of_no_independent_set G 570000 ?_).le, Nat.le_of_not_gt hA⟩
   intro S hS hindS
   exact hB ⟨S, hS, hindS⟩
+
+/-- The independent-set numerical bound in the value type of probability measures. -/
+theorem lemma7_independent_set_union_budget_ennreal (p : I) (hp : (p : ℝ) = 1 / 125000) :
+    ((2000000 : ℕ).choose 570000 : ℝ≥0∞) *
+      (toNNReal (σ p) : ℝ≥0∞) ^ ((570000 : ℕ).choose 2) < 1 / 4 := by
+  apply (ENNReal.toReal_lt_toReal
+    (ENNReal.mul_ne_top (ENNReal.natCast_ne_top _) (ENNReal.pow_ne_top ENNReal.coe_ne_top))
+    (by norm_num)).mp
+  simpa only [ENNReal.toReal_mul, ENNReal.toReal_natCast, ENNReal.toReal_pow,
+    ENNReal.coe_toReal, coe_toNNReal, coe_symm_eq, hp, ENNReal.toReal_div,
+    ENNReal.toReal_one, ENNReal.toReal_ofNat] using lemma7_independent_set_union_budget
 
 end Hedetniemi
