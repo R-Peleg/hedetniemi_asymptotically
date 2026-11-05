@@ -9,12 +9,14 @@ import HedetniemiAsymptotically.AvoidingLargeFibers
 import HedetniemiAsymptotically.RobustColors
 import HedetniemiAsymptotically.ExponentialLift
 import HedetniemiAsymptotically.RobustError
+import HedetniemiAsymptotically.EvenNear
 import Mathlib.Logic.Equiv.Fintype
 import Mathlib.Combinatorics.SetFamily.KruskalKatona
 import Mathlib.Tactic.Ring
 import Mathlib.Analysis.Convex.SpecificFunctions.Basic
 import Mathlib.Tactic.Linarith
 import Mathlib.Tactic.FieldSimp
+import Mathlib.Combinatorics.SimpleGraph.Girth
 
 /-! Proofs appearing in He and Wigderson, *Hedetniemi's conjecture is
 asymptotically false* (arXiv:1906.06783v3). -/
@@ -554,5 +556,19 @@ theorem exists_many_robust_colors {V : Type*} [Fintype V] [DecidableEq V]
   exact exists_many_robust_colors_of_fourth_power hG χ hχ hn hc2 _
     (robustError_pos hn0 hc0) (robustError_le_half hc)
     (robustError_pow_four (Fintype.card V) c t)
+
+/-- A girth bound of six excludes triangles, including closed three-step
+walks presented without distinctness assumptions. -/
+theorem no_triangle_of_six_le_egirth {V : Type*} {G : SimpleGraph V}
+    (hG : 6 ≤ G.egirth) {a b c : V}
+    (hab : G.Adj a b) (hbc : G.Adj b c) (hca : G.Adj c a) : False := by
+  let w : G.Walk a a := .cons hab (.cons hbc (.cons hca .nil))
+  have hw : w.IsCycle := by
+    apply SimpleGraph.Walk.isCycle_iff_isPath_tail_and_le_length.mpr
+    constructor
+    · simp [w, SimpleGraph.Walk.isPath_def, hbc.ne, hab.ne', hca.ne]
+    · simp [w]
+  have hbound := hG.trans hw.egirth_le_length
+  norm_num [w] at hbound
 
 end Hedetniemi
