@@ -436,4 +436,28 @@ theorem normalized_product_gt_fourth {V : Type*} [Fintype V]
   exact (Real.log_lt_log_iff (pow_pos hr 4)
     (Finset.prod_pos (fun w _ ↦ hr.trans (ha w)))).mp hlog
 
+/-- The product estimate of Lemma 5 after rescaling by `c`. Multiplying by
+`c^4` avoids truncated subtraction in the exponent and is equivalent to
+the paper's bound when there are at least four vertices. -/
+theorem product_gt_fourth_scaled {V : Type*} [Fintype V]
+    (s : V → ℝ) {c x : ℝ} (hc : 0 < c) (hx : 0 < x) (hxhalf : x ≤ c / 2)
+    (hs : ∀ v, x < s v) (hsc : ∀ v, s v ≤ c)
+    (hdef : ∑ v, (c - s v) ≤ 2 * c) :
+    x ^ 4 * c ^ Fintype.card V < (∏ v, s v) * c ^ 4 := by
+  have hrhalf : x / c ≤ 1 / 2 := (div_le_iff₀ hc).mpr (by linarith)
+  have hnorm : ∑ v, (1 - s v / c) ≤ 2 := by
+    have heq : (∑ v, (1 - s v / c)) = (∑ v, (c - s v)) / c := by
+      apply (eq_div_iff hc.ne').mpr
+      rw [Finset.sum_mul]
+      apply Finset.sum_congr rfl
+      intro v _
+      field_simp
+    rw [heq]
+    exact (div_le_iff₀ hc).mpr hdef
+  have hprod := normalized_product_gt_fourth (fun v ↦ s v / c) (div_pos hx hc)
+    hrhalf (fun v ↦ (div_lt_div_iff_of_pos_right hc).mpr (hs v))
+    (fun v ↦ (div_le_one hc).mpr (hsc v)) hnorm
+  rw [div_pow, Finset.prod_div_distrib, Finset.prod_const, Finset.card_univ] at hprod
+  exact (div_lt_div_iff₀ (pow_pos hc 4) (pow_pos hc (Fintype.card V))).mp hprod
+
 end Hedetniemi
