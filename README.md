@@ -4,9 +4,10 @@ Lean formalization of He and Wigderson, `pdf/main.pdf`
 (arXiv:1906.06783v3). Uses Lean 4.35.0 and Mathlib commit
 `56a005855ea17e0b0958f73ec801ae140b0a1679`.
 
-Build with `lake build`. The complete root target passes. The axiom audit of
-`Hedetniemi.theorem1` uses only `propext`, `Classical.choice`, and `Quot.sound`;
-the project contains no `sorry`, `admit`, or added axioms.
+Build with `lake build`. The complete root target passes. The axiom audits of
+`Hedetniemi.theorem1` and `Hedetniemi.theorem1_sized` use only `propext`,
+`Classical.choice`, and `Quot.sound`; the project contains no `sorry`,
+`admit`, or added axioms.
 
 Paper proofs belong in `HedetniemiAsymptotically/Main.lean`. Definitions
 and basic technical facts have their own modules. Cited results missing from
@@ -67,6 +68,15 @@ at most `c`. The proof includes looplessness of the exponential and rounding
 for every integer target. The intermediate theorem
 `theorem1_of_lemma7_witness` records the construction from a quantitative witness.
 
+`HedetniemiAsymptotically/ProductSize.lean` records how large the
+counterexamples are, leaving `Main.lean` unchanged. It reruns the construction
+as `Hedetniemi.theorem1_sized`, which proves everything in `theorem1` and also
+bounds the vertex sets `W₁` of `H₁ = G ⊠ K_q` and `W₂` of the exponential
+graph `H₂`: `c < |W₁| ≤ 666667c`, `c < |W₂| ≤ c^(666667c)`, and
+`|W₁ × W₂| ≤ 666667c · c^(666667c)`. The upper bounds follow from
+`|V(G)| ≤ 2000000` and `3q ≤ c' ≤ c`. They describe this construction only.
+The lower bounds are the trivial ones implied by chromatic number above `c`.
+
 Finite-edge probability formulas are in `BernoulliSetEvents.lean` and
 `BinomialGraphEvents.lean`; the general expected-event-count formula is in
 `FiniteEventCount.lean`.
@@ -76,10 +86,6 @@ Lemma 4 uses Mathlib's `Finset.erdos_ko_rado` from
 weighted using equal surjection counts, then compared with all maps whose
 image contains a prescribed color. The elementary finite-map counting
 lemmas are in `MapCounting.lean`.
-
-The workspace's `.git` is an empty read-only mount. Requested commits are
-stored in `.git-local`; inspect them with
-`git --git-dir=.git-local --work-tree=. log`.
 
 The local `.lake/packages` reuses the installed Mathlib sources/cache. It is
 ignored by Git; the manifest pins the normal upstream dependencies for a
