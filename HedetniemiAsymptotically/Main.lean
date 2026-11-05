@@ -775,4 +775,30 @@ theorem lemma6_configuration_impossible {V : Type*} {G : SimpleGraph V} {q c t :
       · exact (finiteNuMap_not_robust_color χ v (hdisjoint i i) (hrob i) hcol).elim
     | inr d => exact ⟨d, rfl⟩
 
+/-- The first color selection in Lemma 6: after discarding the first `2q`
+primary colors, enough robust colors remain to choose `t+1` distinct ones. -/
+theorem exists_high_robust_colors {V : Type*} {G : Graph V} {q c t : ℕ}
+    (χ : (exponentialGraph G (Fin c)).Coloring (Fin c ⊕ Fin t)) (v : V)
+    (hcard : 2 * q + t + 1 ≤ (robustColors χ v).card) :
+    ∃ σ : Fin (t + 1) ↪ Fin c, ∀ i, 2 * q ≤ (σ i).val ∧ IsRobust χ v (σ i) := by
+  classical
+  let S := (robustColors χ v).filter (fun b ↦ 2 * q ≤ b.val)
+  let L := (robustColors χ v).filter (fun b ↦ b.val < 2 * q)
+  have hlow : L.card ≤ (Finset.range (2 * q)).card := by
+    apply Finset.card_le_card_of_injOn Fin.val
+    · intro b hb
+      exact Finset.mem_range.mpr (Finset.mem_filter.mp hb).2
+    · intro a _ b _ hab
+      exact Fin.ext hab
+  have hpartition : S.card + L.card = (robustColors χ v).card := by
+    simpa [S, L, not_le] using Finset.card_filter_add_card_filter_not
+      (s := robustColors χ v) (fun b ↦ 2 * q ≤ b.val)
+  have hsize : t + 1 ≤ S.card := by simp only [Finset.card_range] at hlow; omega
+  obtain ⟨σ, hσ⟩ := Function.Embedding.exists_of_card_le_finset
+    (α := Fin (t + 1)) (s := S) (by simpa using hsize)
+  refine ⟨σ, ?_⟩
+  intro i
+  obtain ⟨hrob, hhigh⟩ := Finset.mem_filter.mp (hσ ⟨i, rfl⟩)
+  exact ⟨hhigh, (mem_robustColors χ v (σ i)).mp hrob⟩
+
 end Hedetniemi
