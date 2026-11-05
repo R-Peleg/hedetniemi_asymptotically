@@ -955,4 +955,35 @@ theorem lemma6_error_estimate {n c t : ℕ} {δ : ℝ} (hδ : 0 ≤ δ)
   have hm := mul_le_mul_of_nonneg_right hβlower (Nat.cast_nonneg c)
   nlinarith
 
+/-- Explicit sufficient numerical conditions for the discrete Lemma 6.
+These estimates allow integer rounding of the paper's real-valued parameters. -/
+theorem lemma6_numeric_conditions {n q c t : ℕ} {δ : ℝ}
+    (hδ : 0 ≤ δ) (hsmall : δ ≤ 1 / 324) (hδn : (n : ℝ) * δ = 1 / 81)
+    (ht : (t : ℝ) ≤ δ * c) (hclower : (3 + 10 * δ) * q ≤ c)
+    (hq : 4 ≤ δ * q) (hlarge : (n : ℝ) ^ 3 ≤ δ * c / 27) :
+    16 * (n * t + n ^ 3) ≤ c ∧ 3 * q + 3 * t + 2 ≤ c ∧
+      ((2 * q + t + 1 : ℕ) : ℝ) ≤ (c : ℝ) - robustError n c t := by
+  have hδsq : δ ^ 2 ≤ δ / 324 := by
+    nlinarith [mul_le_mul_of_nonneg_left hsmall hδ]
+  have hnt : (n : ℝ) * t ≤ (c : ℝ) / 81 := by
+    have hm := mul_le_mul_of_nonneg_left ht (Nat.cast_nonneg n)
+    rw [← mul_assoc, hδn] at hm
+    linarith
+  have hc16 : (16 : ℝ) * ((n : ℝ) * t + (n : ℝ) ^ 3) ≤ c := by
+    have hm := mul_le_mul_of_nonneg_right hsmall (Nat.cast_nonneg c)
+    nlinarith
+  have hB : 0 ≤ 1 - 3 * δ := by linarith
+  have hcoefB : 3 + δ / 2 ≤ (1 - 3 * δ) * (3 + 10 * δ) := by nlinarith
+  have hcB := mul_le_mul_of_nonneg_left hclower hB
+  have hqB := mul_le_mul_of_nonneg_right hcoefB (Nat.cast_nonneg q)
+  have hcq : (3 : ℝ) * q + 3 * t + 2 ≤ c := by nlinarith
+  have hA : 0 ≤ (2 / 3 : ℝ) - 3 * δ / 2 := by linarith
+  have hcoefA : 2 + δ ≤ ((2 / 3 : ℝ) - 3 * δ / 2) * (3 + 10 * δ) := by nlinarith
+  have hcA := mul_le_mul_of_nonneg_left hclower hA
+  have hqA := mul_le_mul_of_nonneg_right hcoefA (Nat.cast_nonneg q)
+  have hx := lemma6_error_estimate hδ hδn ht hlarge
+  refine ⟨by exact_mod_cast hc16, by exact_mod_cast hcq, ?_⟩
+  push_cast
+  nlinarith
+
 end Hedetniemi
