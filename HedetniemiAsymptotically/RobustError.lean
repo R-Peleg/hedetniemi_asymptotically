@@ -34,4 +34,16 @@ theorem robustError_le_half {n c t : ℕ} (h : 16 * (n * t + n ^ 3) ≤ c) :
   have hm := mul_le_mul_of_nonneg_right hR (show (0 : ℝ) ≤ (c : ℝ) ^ 3 by positivity)
   nlinarith
 
+/-- A fourth-power upper bound on the normalized error gives a linear
+upper bound on the error itself. -/
+theorem robustError_le_mul {n c t : ℕ} {β : ℝ} (hβ : 0 ≤ β)
+    (hnum : (n : ℝ) * t + (n : ℝ) ^ 3 ≤ β ^ 4 * c) :
+    robustError n c t ≤ β * c := by
+  have hx : 0 ≤ robustError n c t := Real.sqrt_nonneg _
+  apply (pow_le_pow_iff_left₀ hx
+    (mul_nonneg hβ (Nat.cast_nonneg c)) (by decide : (4 : ℕ) ≠ 0)).mp
+  rw [robustError_pow_four, mul_pow]
+  have hm := mul_le_mul_of_nonneg_right hnum (show (0 : ℝ) ≤ (c : ℝ) ^ 3 by positivity)
+  nlinarith
+
 end Hedetniemi
