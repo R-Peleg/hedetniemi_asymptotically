@@ -8,6 +8,7 @@ import HedetniemiAsymptotically.TriangleFree
 import HedetniemiAsymptotically.AvoidingLargeFibers
 import Mathlib.Logic.Equiv.Fintype
 import Mathlib.Combinatorics.SetFamily.KruskalKatona
+import Mathlib.Tactic.Ring
 
 /-! Proofs appearing in He and Wigderson, *Hedetniemi's conjecture is
 asymptotically false* (arXiv:1906.06783v3). -/
@@ -276,5 +277,47 @@ theorem avoiding_primary_class_card_le {V C D : Type*}
       · exact hv
       · exact Nat.zero_le _
     _ = _ := by simp [K]
+
+/-- The upper bound on `|S|` in Lemma 5. -/
+theorem card_avoidingLargeFibers_le {V : Type*} [Fintype V] [Nonempty V]
+    [DecidableEq V] {G : Graph V} {c t : ℕ}
+    (χ : (exponentialGraph G (Fin c)).Coloring (Fin c ⊕ Fin t))
+    (hχ : IsSuited χ) (hn : 2 ≤ Fintype.card V) (hc : 2 * Fintype.card V ≤ c) :
+    (avoidingLargeFibers χ).card ≤
+      (Fintype.card V * t + Fintype.card V ^ 3) * c ^ (Fintype.card V - 1) := by
+  classical
+  let n := Fintype.card V
+  let S := avoidingLargeFibers χ
+  have hp : (∑ b : Fin c, (S.filter (fun f ↦ χ.val f = Sum.inl b)).card) ≤
+      c * (n * (n ^ 2 * c ^ (n - 2))) := by
+    calc
+      _ ≤ ∑ _b : Fin c, n * (n ^ 2 * c ^ (n - 2)) := by
+        apply Finset.sum_le_sum
+        intro b _
+        simpa [n, S] using avoiding_primary_class_card_le χ hχ b
+      _ = _ := by simp
+  have hs : (∑ d : Fin t, (S.filter (fun f ↦ χ.val f = Sum.inr d)).card) ≤
+      t * (n * c ^ (n - 1)) := by
+    calc
+      _ ≤ ∑ _d : Fin t, n * c ^ (n - 1) := by
+        apply Finset.sum_le_sum
+        intro d _
+        apply exponential_independent_card_le G c hc
+        intro f hf g hg _ hadj
+        exact χ.property hadj ((Finset.mem_filter.mp hf).2.trans
+          (Finset.mem_filter.mp hg).2.symm)
+      _ = _ := by simp
+  calc
+    S.card = (∑ b : Fin c, (S.filter (fun f ↦ χ.val f = Sum.inl b)).card) +
+        ∑ d : Fin t, (S.filter (fun f ↦ χ.val f = Sum.inr d)).card := by
+      rw [Finset.card_eq_sum_card_fiberwise (f := χ.val)
+        (t := Finset.univ) (fun _ _ ↦ Finset.mem_univ _), Fintype.sum_sum_type]
+    _ ≤ c * (n * (n ^ 2 * c ^ (n - 2))) + t * (n * c ^ (n - 1)) :=
+      Nat.add_le_add hp hs
+    _ = _ := by
+      change _ = (n * t + n ^ 3) * c ^ (n - 1)
+      have he : n - 1 = n - 2 + 1 := by dsimp [n]; omega
+      simp only [he, pow_succ]
+      ring
 
 end Hedetniemi
