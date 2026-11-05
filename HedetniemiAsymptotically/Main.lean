@@ -656,4 +656,14 @@ theorem muMap_coproper {V : Type*} {G : SimpleGraph V} (hG : 6 ≤ G.egirth)
         · exact far_not_loopedAdj_neighbor hxE hxN hyN hxy.1
         · exact hrs (by simpa [muMap, hxE, hxN, hyE, hyN] using heq)
 
+/-- The second clique of Lemma 6 consists of `ν` maps with disjoint pairs
+of image colors. This fact does not require a girth assumption. -/
+theorem nuMap_coproper_of_disjoint_colors {V : Type*} (G : SimpleGraph V) (v : V)
+    {r σ r' σ' : ℕ} (hrr : r ≠ r') (hrσ : r ≠ σ') (hσr : σ ≠ r') (hσσ : σ ≠ σ') :
+    CoProper (loopedGraph G) (nuMap G v r σ) (nuMap G v r' σ') := by
+  classical
+  intro x y _
+  unfold nuMap
+  split_ifs <;> assumption
+
 end Hedetniemi
