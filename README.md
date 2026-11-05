@@ -16,20 +16,27 @@ Primary and secondary colors are represented by a sum type `C ⊕ D`.
 Specializing to `Fin c ⊕ Fin t` gives the paper's palette of `c+t` colors.
 
 Checked results include Lemma 2 (both the evaluation coloring and its Mathlib
-chromatic-number bound), Lemma 3 (existence of a suited coloring), and the
+chromatic-number bound), Lemma 3 (existence of a suited coloring), Lemma 4
+(the full independent-family cardinality bound for a nonempty vertex set), and the
 basic symmetry, containment, and looplessness properties of exponential graphs.
-The robust-color definition and the unique-support clique step of Lemma 5
-are also checked; its counting estimates remain to be proved.
+The robust-color definition and the local counting steps of Lemma 5 are
+also checked: fibers larger than `n² c^(n-2)` force robustness, contain a
+map with a uniquely supported primary color, and therefore define cliques
+`V_b`. The global counting and product estimates remain to be proved.
 
 Remaining paper results:
 
-- Lemma 4: independence bound for exponential graphs. The cited
-  Erdős–Ko–Rado theorem is available as `Finset.erdos_ko_rado` in
-  `Mathlib.Combinatorics.SetFamily.KruskalKatona`.
-- Lemma 5: robust colors and the counting argument.
+- Lemma 5: the triangle-free bound on `|V_b|`, global counting of the maps
+  avoiding large fibers, and the product estimate giving many robust colors.
 - Lemma 6: construction from a graph of girth at least six.
 - Lemma 7: probabilistic existence with explicit numerical bounds.
 - Theorem 1, including rounding to cover all sufficiently large integers.
+
+Lemma 4 uses Mathlib's `Finset.erdos_ko_rado` from
+`Mathlib.Combinatorics.SetFamily.KruskalKatona`. Its image-size layers are
+weighted using equal surjection counts, then compared with all maps whose
+image contains a prescribed color. The elementary finite-map counting
+lemmas are in `MapCounting.lean`.
 
 The workspace's `.git` is an empty read-only mount. Requested commits are
 stored in `.git-local`; inspect them with
