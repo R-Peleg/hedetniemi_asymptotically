@@ -1629,4 +1629,23 @@ theorem lemma7_shortCycle_bad_probability {V : Type*} [Fintype V] [LinearOrder V
   shortCycle_markov_measure_le _ (lemma7_expected_shortCycles hN p hp)
 
 
+/-- The quantitative witness of Lemma 7, retaining the bounds used in Theorem 1. -/
+theorem lemma7_quantitative :
+    ∃ (G : SimpleGraph (Fin 2000000)) (D : Finset (Fin 2000000)),
+      1770000 ≤ Fintype.card {v // v ∉ D} ∧
+      Fintype.card {v // v ∉ D} ≤ 2000000 ∧
+      6 ≤ (G.induce {v | v ∉ D}).egirth ∧
+      (G.induce {v | v ∉ D}).indepNum ≤ 570000 ∧
+      (31 / 10 : ℝ) ≤ fractionalChromaticNumber (G.induce {v | v ∉ D}) := by
+  classical
+  let p : I := ⟨1 / 125000, by constructor <;> norm_num⟩
+  have hp : (p : ℝ) = 1 / 125000 := rfl
+  have hN : Fintype.card (Fin 2000000) = 2000000 := Fintype.card_fin _
+  obtain ⟨G, hind, hcycles⟩ := exists_graph_of_bad_event_bounds
+    (SimpleGraph.binomialRandom (Fin 2000000) p)
+    (lemma7_shortCycle_bad_probability hN p hp)
+    (lemma7_independent_set_bad_probability hN p hp)
+  obtain ⟨D, hlow, hupp, hgirth, hfrac⟩ := lemma7_deletion_conclusion G hN hind hcycles
+  exact ⟨G, D, hlow, hupp, hgirth, (indepNum_induce_le G _).trans hind, hfrac⟩
+
 end Hedetniemi
