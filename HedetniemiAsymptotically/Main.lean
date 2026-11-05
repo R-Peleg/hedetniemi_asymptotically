@@ -1,5 +1,6 @@
 import HedetniemiAsymptotically.ElZaharSauer
 import HedetniemiAsymptotically.SuitedColoring
+import HedetniemiAsymptotically.RobustColor
 import Mathlib.Logic.Equiv.Fintype
 
 /-! Proofs appearing in He and Wigderson, *Hedetniemi's conjecture is
@@ -29,5 +30,20 @@ theorem exists_suited_coloring {V C D : Type*} [Finite C] (G : Graph V)
     exact hb ⟨v, heq⟩
   apply χ'.property hadj
   exact hfb.trans (hσ b).symm
+
+/-- The clique step in Lemma 5: if each vertex in a set supports a map with
+one occurrence of `b`, and `b` is robust at each vertex, the set is a clique.
+The counting part of Lemma 5 will supply these two hypotheses. -/
+theorem robust_supports_form_clique {V C D : Type*} {G : Graph V}
+    {χ : (exponentialGraph G C).Coloring (C ⊕ D)} {b : C} {S : Set V}
+    (hrobust : ∀ v ∈ S, IsRobust χ v b)
+    (hsupport : ∀ u ∈ S, ∃ f : V → C,
+      χ.val f = Sum.inl b ∧ ∀ w, f w = b → w = u) :
+    ∀ v ∈ S, ∀ u ∈ S, v ≠ u → G.Adj v u := by
+  intro v hv u hu hne
+  obtain ⟨f, hf, hfu⟩ := hsupport u hu
+  rcases (hrobust v hv).unique_support hf hfu with heq | hadj
+  · exact (hne heq.symm).elim
+  · exact hadj
 
 end Hedetniemi
