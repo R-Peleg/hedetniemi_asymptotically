@@ -1,6 +1,7 @@
 import Mathlib.Analysis.Real.Sqrt
 import Mathlib.Tactic.Ring
 import Mathlib.Tactic.Positivity
+import Mathlib.Tactic.Linarith
 
 namespace Hedetniemi
 
@@ -21,5 +22,16 @@ theorem robustError_pos {n c t : ℕ} (hn : 0 < n) (hc : 0 < c) :
   apply Real.sqrt_pos.mpr
   apply Real.sqrt_pos.mpr
   positivity
+
+/-- The numerical hypothesis in Lemma 5 implies that its error is at most `c/2`. -/
+theorem robustError_le_half {n c t : ℕ} (h : 16 * (n * t + n ^ 3) ≤ c) :
+    robustError n c t ≤ (c : ℝ) / 2 := by
+  have hx : 0 ≤ robustError n c t := Real.sqrt_nonneg _
+  apply (pow_le_pow_iff_left₀ hx (by positivity : (0 : ℝ) ≤ (c : ℝ) / 2)
+    (by decide : (4 : ℕ) ≠ 0)).mp
+  rw [robustError_pow_four]
+  have hR : 16 * ((n : ℝ) * t + (n : ℝ) ^ 3) ≤ c := by exact_mod_cast h
+  have hm := mul_le_mul_of_nonneg_right hR (show (0 : ℝ) ≤ (c : ℝ) ^ 3 by positivity)
+  nlinarith
 
 end Hedetniemi
