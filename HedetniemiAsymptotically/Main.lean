@@ -1,11 +1,29 @@
 import HedetniemiAsymptotically.ElZaharSauer
 import HedetniemiAsymptotically.SuitedColoring
 import HedetniemiAsymptotically.RobustColor
+import HedetniemiAsymptotically.IndependentSet
 import Mathlib.Logic.Equiv.Fintype
 
 /-! Proofs appearing in He and Wigderson, *Hedetniemi's conjecture is
 asymptotically false* (arXiv:1906.06783v3). -/
 namespace Hedetniemi
+
+/-- The reduction in Lemma 4: maps in an independent family have intersecting
+images. The nonempty vertex hypothesis also handles comparison of a map
+with itself. -/
+theorem independent_maps_images_intersect {V C : Type*} [Nonempty V]
+    {G : Graph V} {I : Set (V → C)}
+    (hI : (exponentialGraph G C).IsIndependent I)
+    {f g : V → C} (hf : f ∈ I) (hg : g ∈ I) :
+    ∃ v w, f v = g w := by
+  classical
+  by_cases hfg : f = g
+  · obtain ⟨v⟩ := ‹Nonempty V›
+    exact ⟨v, v, congrFun hfg v⟩
+  · by_contra h
+    apply hI hf hg hfg
+    intro v w _ heq
+    exact h ⟨v, w, heq⟩
 
 /-- Lemma 3. A coloring with finitely many primary colors can be made suited
 by permuting its colors. Taking `C = Fin c` and `D = Fin t` gives the paper's
