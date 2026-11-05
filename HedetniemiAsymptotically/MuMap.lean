@@ -18,4 +18,12 @@ theorem muMap_lt {V : Type*} (G : SimpleGraph V) (v : V) {q r c : ℕ}
   unfold muMap
   split_ifs <;> omega
 
+/-- A value outside the first two blocks must be the parameter `r`. -/
+theorem muMap_eq_parameter_of_ge {V : Type*} (G : SimpleGraph V) (v : V) {q r : ℕ}
+    (x : V × Fin q) (hx : 2 * q ≤ muMap G v q r x) : muMap G v q r x = r := by
+  classical
+  have hi := x.2.isLt
+  unfold muMap at hx ⊢
+  split_ifs at hx ⊢ <;> omega
+
 end Hedetniemi
