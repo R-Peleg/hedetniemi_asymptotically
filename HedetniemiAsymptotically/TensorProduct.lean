@@ -17,4 +17,10 @@ def tensorColoringRight {V W C : Type*} (G : Graph V) {H : Graph W}
     (f : H.Coloring C) : (tensorProduct G H).Coloring C :=
   ⟨fun x ↦ f.val x.2, fun {_ _} h ↦ f.property h.2⟩
 
+/-- If the first factor is simple, its tensor product with any graph is simple. -/
+def tensorSimpleLeft {V W : Type*} (G : SimpleGraph V) (H : Graph W) :
+    SimpleGraph (V × W) :=
+  (tensorProduct (Graph.ofSimpleGraph G) H).toSimpleGraph
+    (fun x h ↦ G.loopless.irrefl x.1 h.1)
+
 end Hedetniemi
