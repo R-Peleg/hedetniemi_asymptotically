@@ -8,6 +8,7 @@ import HedetniemiAsymptotically.TriangleFree
 import HedetniemiAsymptotically.AvoidingLargeFibers
 import HedetniemiAsymptotically.RobustColors
 import HedetniemiAsymptotically.ExponentialLift
+import HedetniemiAsymptotically.RobustError
 import Mathlib.Logic.Equiv.Fintype
 import Mathlib.Combinatorics.SetFamily.KruskalKatona
 import Mathlib.Tactic.Ring
@@ -526,5 +527,32 @@ theorem exists_many_robust_colors_of_fourth_power {V : Type*} [Fintype V] [Nonem
         simpa using card_robustColors_ge_excluded χ v)
     simpa only [Nat.cast_sub hcardle] using hcast
   linarith
+
+/-- Lemma 5 (robust colors). A suited `(c+t)`-coloring of an exponential
+graph over a triangle-free graph has a vertex with at least `c-x` robust
+primary colors, where `x = ((nt+n³)c³)^(1/4)`. -/
+theorem exists_many_robust_colors {V : Type*} [Fintype V] [DecidableEq V]
+    {G : Graph V} {c t : ℕ} (hG : G.IsTriangleFree)
+    (χ : (exponentialGraph G (Fin c)).Coloring (Fin c ⊕ Fin t)) (hχ : IsSuited χ)
+    (hn : 4 ≤ Fintype.card V) (hc : 16 * (Fintype.card V * t + Fintype.card V ^ 3) ≤ c) :
+    ∃ v, (c : ℝ) - robustError (Fintype.card V) c t ≤ ((robustColors χ v).card : ℝ) := by
+  let n := Fintype.card V
+  have hn0 : 0 < n := by dsimp [n]; omega
+  have hn1 : 1 ≤ n := by omega
+  have hn2 : n ≤ n * n := by simpa using Nat.mul_le_mul_left n hn1
+  have hn3 : n ≤ n ^ 3 := by
+    calc
+      n ≤ n * n := hn2
+      _ ≤ (n * n) * n := by simpa using Nat.mul_le_mul_left (n * n) hn1
+      _ = _ := by ring
+  have hc2 : 2 * Fintype.card V ≤ c := by
+    change 2 * n ≤ c
+    change 16 * (n * t + n ^ 3) ≤ c at hc
+    omega
+  have hc0 : 0 < c := by omega
+  have : Nonempty V := Fintype.card_pos_iff.mp hn0
+  exact exists_many_robust_colors_of_fourth_power hG χ hχ hn hc2 _
+    (robustError_pos hn0 hc0) (robustError_le_half hc)
+    (robustError_pow_four (Fintype.card V) c t)
 
 end Hedetniemi
