@@ -1147,4 +1147,23 @@ theorem strongProduct_indepSet_card_le {V W : Type*} [Finite V] (G : SimpleGraph
       (Finset.card_image_iff.mpr (strongProduct_indepSet_fst_injective G hS)).symm
     _ ≤ G.indepNum := hproj.card_le_indepNum
 
+/-- Counting color classes gives the strong-product chromatic lower
+bound needed in the final construction, expressed for an arbitrary finite palette. -/
+theorem strongProduct_coloring_card_bound {V W C : Type*}
+    [Fintype V] [Fintype W] [Fintype C] (G : SimpleGraph V)
+    (χ : (strongProduct G (⊤ : SimpleGraph W)).Coloring C) :
+    Fintype.card V * Fintype.card W ≤ Fintype.card C * G.indepNum := by
+  classical
+  calc
+    Fintype.card V * Fintype.card W = (Finset.univ : Finset (V × W)).card := by simp
+    _ = ∑ b : C, (Finset.univ.filter (fun x : V × W ↦ χ x = b)).card :=
+      Finset.card_eq_sum_card_fiberwise (f := fun x ↦ χ x) (fun _ _ ↦ Finset.mem_univ _)
+    _ ≤ ∑ _b : C, G.indepNum := by
+      apply Finset.sum_le_sum
+      intro b _
+      apply strongProduct_indepSet_card_le
+      intro x hx y hy _ hxy
+      exact χ.valid hxy ((Finset.mem_filter.mp hx).2.trans (Finset.mem_filter.mp hy).2.symm)
+    _ = Fintype.card C * G.indepNum := by simp
+
 end Hedetniemi
