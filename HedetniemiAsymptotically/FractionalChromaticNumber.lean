@@ -28,4 +28,9 @@ theorem fractionalChromaticNumber_le_totalWeight {V : Type*} [Fintype V] [Decida
     exact ψ.totalWeight_nonneg
   exact csInf_le hb ⟨χ, rfl⟩
 
+theorem fractionalChromaticNumber_le_card {V : Type*} [Fintype V] [DecidableEq V]
+    (G : SimpleGraph V) : fractionalChromaticNumber G ≤ Fintype.card V := by
+  simpa only [singletonFractionalColoring_totalWeight] using
+    fractionalChromaticNumber_le_totalWeight (singletonFractionalColoring G)
+
 end Hedetniemi
