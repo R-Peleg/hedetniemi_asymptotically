@@ -2,6 +2,7 @@ import HedetniemiAsymptotically.ElZaharSauer
 import HedetniemiAsymptotically.SuitedColoring
 import HedetniemiAsymptotically.RobustColor
 import HedetniemiAsymptotically.IndependentSet
+import HedetniemiAsymptotically.MapCounting
 import Mathlib.Logic.Equiv.Fintype
 import Mathlib.Combinatorics.SetFamily.KruskalKatona
 
@@ -46,6 +47,42 @@ theorem independent_image_layer_card_le {V : Type*} [Fintype V] [Nonempty V]
       Finset.mem_image.mpr ⟨w, Finset.mem_univ _, hvw.symm⟩⟩
   · intro s hs
     exact (Finset.mem_filter.mp hs).2
+
+/-- The weighted-layer step of Lemma 4: a layer has no more maps than the
+same layer of the family of all maps containing one fixed color. -/
+theorem independent_map_layer_card_le {V : Type*} [Fintype V] [Nonempty V]
+    [DecidableEq V] {c k : ℕ} {G : Graph V} (I : Finset (V → Fin c))
+    (hI : (exponentialGraph G (Fin c)).IsIndependent (I : Set (V → Fin c)))
+    (b : Fin c) (hkpos : 1 ≤ k) (hk : k ≤ c / 2) :
+    (I.filter (fun f ↦ (Finset.univ.image f).card = k)).card ≤
+      (Finset.univ.filter (fun f : V → Fin c ↦
+        b ∈ Set.range f ∧ (Finset.univ.image f).card = k)).card := by
+  classical
+  let A := (I.image (fun f ↦ Finset.univ.image f)).filter (fun s ↦ s.card = k)
+  let B := ((Finset.univ : Finset (Fin c)).powersetCard k).filter (fun s ↦ {b} ⊆ s)
+  have hBcard : B.card = (c - 1).choose (k - 1) := by
+    simpa [B] using Finset.card_filter_powersetCard_subset
+      ({b} : Finset (Fin c)) Finset.univ k (by simp) (by simpa using hkpos)
+  have hcard : A.card ≤ B.card := by
+    rw [hBcard]
+    exact independent_image_layer_card_le I hI hk
+  calc
+    _ ≤ (Finset.univ.filter (fun f : V → Fin c ↦ Finset.univ.image f ∈ A)).card := by
+      apply Finset.card_le_card
+      intro f hf
+      obtain ⟨hfI, hfk⟩ := Finset.mem_filter.mp hf
+      simp only [Finset.mem_filter, Finset.mem_univ, true_and]
+      exact Finset.mem_filter.mpr ⟨Finset.mem_image.mpr ⟨f, hfI, rfl⟩, hfk⟩
+    _ ≤ (Finset.univ.filter (fun f : V → Fin c ↦ Finset.univ.image f ∈ B)).card := by
+      apply card_maps_with_images_le (k := k) _ _ hcard
+      · intro s hs
+        exact (Finset.mem_filter.mp hs).2
+      · intro s hs
+        exact (Finset.mem_powersetCard.mp (Finset.mem_filter.mp hs).1).2
+    _ = _ := by
+      congr 1
+      ext f
+      simp [B, Finset.mem_powersetCard, Set.mem_range, and_comm]
 
 /-- Lemma 3. A coloring with finitely many primary colors can be made suited
 by permuting its colors. Taking `C = Fin c` and `D = Fin t` gives the paper's
