@@ -1319,4 +1319,27 @@ theorem construction_rounding (δ : ℝ) (hδ : 0 ≤ δ) (hδsmall : δ ≤ 1 /
     nlinarith
   · linarith
 
+/-- The final multiplicative gain absorbs both integer-rounding errors. -/
+theorem construction_rounded_gain (δ : ℝ)
+    (hδ : 1 / 162000000 ≤ δ) (hδsmall : δ ≤ 1 / 324)
+    {c q c' : ℕ} (hc : 2000000000 ≤ c)
+    (hc' : (c : ℝ) - 4 < c')
+    (hq : (c : ℝ) / (3 + 10 * δ) - 1 < q) :
+    (1 + 1 / 1000000000 : ℝ) * c < (1 + δ) * c' ∧
+      (1 + 1 / 1000000000 : ℝ) * c < (31 / 10 : ℝ) * q := by
+  have hcR : (2000000000 : ℝ) ≤ c := by exact_mod_cast hc
+  have hc0 : (0 : ℝ) ≤ c := Nat.cast_nonneg _
+  have hδ0 : 0 ≤ δ := by linarith
+  constructor
+  · have hδc := mul_le_mul_of_nonneg_right hδ hc0
+    have hfirst := mul_lt_mul_of_pos_left hc' (show (0 : ℝ) < 1 + δ by linarith)
+    nlinarith
+  · have ha : 0 < 3 + 10 * δ := by linarith
+    have hq' : (c : ℝ) < ((q : ℝ) + 1) * (3 + 10 * δ) := by
+      apply (div_lt_iff₀ ha).mp
+      linarith
+    have hδq := mul_le_mul_of_nonneg_right hδsmall (Nat.cast_nonneg q)
+    have hcq : (c : ℝ) < ((q : ℝ) + 1) * (3 + 10 / 324) := by nlinarith
+    nlinarith
+
 end Hedetniemi
