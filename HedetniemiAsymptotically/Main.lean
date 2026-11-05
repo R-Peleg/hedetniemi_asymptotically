@@ -1121,4 +1121,17 @@ theorem lemma7_cycle_expectation_budget :
       (2000000 : ℝ) ^ 5 * (1 / 125000 : ℝ) ^ 5 / 10 ≤ 115000 := by
   norm_num
 
+/-- The final independence-ratio estimate in Lemma 7 after deleting at
+most `230000` vertices from the initial graph on `2000000` vertices. -/
+theorem lemma7_fractional_bound_of_indepNum {V : Type*} [Fintype V] [DecidableEq V]
+    (G : SimpleGraph V) (hvertices : 1770000 ≤ Fintype.card V) (hind : G.indepNum ≤ 570000) :
+    (31 / 10 : ℝ) ≤ fractionalChromaticNumber G := by
+  calc
+    (31 / 10 : ℝ) ≤ (Fintype.card V : ℝ) / 570000 := by
+      apply (le_div_iff₀ (by norm_num : (0 : ℝ) < 570000)).mpr
+      have hV : (1770000 : ℝ) ≤ Fintype.card V := by exact_mod_cast hvertices
+      linarith
+    _ ≤ fractionalChromaticNumber G := card_div_le_fractionalChromaticNumber G
+      (by norm_num : 0 < (570000 : ℕ)) (fun S hS ↦ hS.card_le_indepNum.trans hind)
+
 end Hedetniemi
