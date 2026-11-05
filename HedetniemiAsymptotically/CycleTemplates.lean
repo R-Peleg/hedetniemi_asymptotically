@@ -17,4 +17,8 @@ def cycleTemplates (m : ℕ) : Finset (Finset (Sym2 (Fin (m + 3)))) :=
 set_option maxRecDepth 20000 in
 theorem card_cycleTemplates_three : (cycleTemplates 0).card = 1 := by decide
 
+set_option maxRecDepth 20000 in
+set_option maxHeartbeats 0 in
+theorem card_cycleTemplates_four : (cycleTemplates 1).card = 3 := by decide
+
 end Hedetniemi
