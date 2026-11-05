@@ -39,4 +39,13 @@ theorem card_cycleEdges {m : ℕ} (σ : Equiv.Perm (Fin (m + 3))) :
   rw [cycleEdges, Finset.card_image_of_injective _ (cycle_edge_injective σ)]
   simp
 
+/-- Every edge in a cycle pattern joins distinct vertices. -/
+theorem cycleEdges_not_isDiag {m : ℕ} (σ : Equiv.Perm (Fin (m + 3)))
+    {e : Sym2 (Fin (m + 3))} (he : e ∈ cycleEdges σ) : ¬ e.IsDiag := by
+  classical
+  obtain ⟨i, _, rfl⟩ := Finset.mem_image.mp he
+  rw [Sym2.mk_isDiag_iff]
+  intro h
+  exact cycle_successor_ne i (σ.injective h).symm
+
 end Hedetniemi
