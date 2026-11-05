@@ -1586,4 +1586,14 @@ theorem binomialRandom_cyclePlacement_probability {V : Type*} [Fintype V] [Linea
     (fun e he ↦ (cyclePlacement_properties P).2 e he)
   simpa only [(cyclePlacement_properties P).1, Set.subset_def, Finset.mem_coe] using h
 
+/-- Summing occurrence probabilities gives the expected number of cycles of a fixed length. -/
+theorem binomialRandom_expected_cyclePlacements {V : Type*} [Fintype V] [LinearOrder V]
+    (p : I) (m : ℕ) :
+    (∫⁻ G, ((presentCyclePlacements G m).card : ℝ≥0∞)
+      ∂SimpleGraph.binomialRandom V p) =
+      (Fintype.card (CyclePlacement V m) : ℝ≥0∞) * (toNNReal p : ℝ≥0∞) ^ (m + 3) := by
+  rw [lintegral_card_presentCyclePlacements]
+  simp only [binomialRandom_cyclePlacement_probability, Finset.sum_const, Finset.card_univ,
+    nsmul_eq_mul]
+
 end Hedetniemi
