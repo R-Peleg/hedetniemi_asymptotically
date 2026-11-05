@@ -48,4 +48,12 @@ theorem cycleEdges_not_isDiag {m : ℕ} (σ : Equiv.Perm (Fin (m + 3)))
   intro h
   exact cycle_successor_ne i (σ.injective h).symm
 
+/-- The edge count and looplessness are independent of the chosen cycle template. -/
+theorem cycleTemplate_properties {m : ℕ} {E : Finset (Sym2 (Fin (m + 3)))}
+    (hE : E ∈ cycleTemplates m) :
+    E.card = m + 3 ∧ ∀ e ∈ E, ¬ e.IsDiag := by
+  classical
+  obtain ⟨σ, _, rfl⟩ := Finset.mem_image.mp hE
+  exact ⟨card_cycleEdges σ, fun _ he ↦ cycleEdges_not_isDiag σ he⟩
+
 end Hedetniemi
