@@ -666,4 +666,24 @@ theorem nuMap_coproper_of_disjoint_colors {V : Type*} (G : SimpleGraph V) (v : V
   unfold nuMap
   split_ifs <;> assumption
 
+/-- The final edge in Lemma 6: `μ_r` and the lifted `ν_{r,σ}` are
+co-proper when both high colors avoid the first two color blocks. -/
+theorem muMap_nuMap_coproper {V : Type*} (G : SimpleGraph V) (v : V) {q r σ : ℕ}
+    (hr : 2 * q ≤ r) (hσ : 2 * q ≤ σ) (hrσ : r ≠ σ) :
+    CoProper (Graph.ofSimpleGraph (strongProduct G (⊤ : SimpleGraph (Fin q))))
+      (muMap G v q r) (exponentialLift (W := Fin q) (nuMap G v r σ)) := by
+  classical
+  intro x y hxy heq
+  have hi := x.2.isLt
+  change muMap G v q r x = nuMap G v r σ y.1 at heq
+  by_cases hxE : EvenNear G v x.1
+  · simp only [muMap, ite_eq_left hxE, nuMap] at heq
+    split_ifs at heq <;> omega
+  · by_cases hxN : G.Adj v x.1
+    · simp only [muMap, ite_eq_right hxE, ite_eq_left hxN, nuMap] at heq
+      split_ifs at heq <;> omega
+    · by_cases hyC : y.1 = v ∨ G.Adj v y.1
+      · exact far_not_loopedAdj_closed hxE hxN hyC hxy.1
+      · exact hrσ (by simpa [muMap, hxE, hxN, nuMap, hyC] using heq)
+
 end Hedetniemi
