@@ -14,6 +14,8 @@ import HedetniemiAsymptotically.MuMap
 import HedetniemiAsymptotically.NuMap
 import HedetniemiAsymptotically.RestrictedColoring
 import HedetniemiAsymptotically.FiniteMap
+import HedetniemiAsymptotically.FiniteMuMap
+import HedetniemiAsymptotically.FiniteNuMap
 import Mathlib.Logic.Equiv.Fintype
 import Mathlib.Combinatorics.SetFamily.KruskalKatona
 import Mathlib.Tactic.Ring
@@ -710,5 +712,23 @@ theorem secondary_clique_impossible {V C : Type*} {t : ℕ} {G : Graph V}
     rw [hd i, hd j, hij]
   have hcard := Fintype.card_le_of_injective d hinj
   simp at hcard
+
+/-- Robustness prevents the lifted `ν_{r,σ}` map from receiving `σ`, since
+it takes the different color `r` throughout the closed neighborhood. -/
+theorem finiteNuMap_not_robust_color {V : Type*} {G : SimpleGraph V} {q c t : ℕ}
+    (χ : (exponentialGraph (Graph.ofSimpleGraph
+      (strongProduct G (⊤ : SimpleGraph (Fin q)))) (Fin c)).Coloring (Fin c ⊕ Fin t))
+    (v : V) {r σ : Fin c} (hrσ : r ≠ σ)
+    (hrob : IsRobust (restrictExponentialColoring χ) v σ) :
+    χ.val (exponentialLift (W := Fin q) (finiteNuMap G v r σ)) ≠ Sum.inl σ := by
+  intro hcolor
+  obtain ⟨w, hw, hval⟩ := hrob (finiteNuMap G v r σ) hcolor
+  have hwclosed : w = v ∨ G.Adj v w := by
+    rcases hw with heq | heq | hadj
+    · exact Or.inl heq
+    · exact Or.inl heq.symm
+    · exact Or.inr hadj
+  have hvalr : (finiteNuMap G v r σ w).val = r.val := nuMap_eq_on_closed hwclosed
+  exact hrσ ((Fin.ext hvalr).symm.trans hval)
 
 end Hedetniemi
