@@ -938,4 +938,21 @@ theorem lemma6_discrete_no_coloring {V : Type*} [Fintype V] [DecidableEq V]
   exact (lemma6_discrete_uncolorability hG hn hc hcq herror).false
     (recolor finSumFinEquiv.symm χ)
 
+/-- A quantitative version of the error estimate in Lemma 6. It gives
+`x ≤ (1/3+δ/2)c` once the lower-order term `n³/c` is small enough. -/
+theorem lemma6_error_estimate {n c t : ℕ} {δ : ℝ} (hδ : 0 ≤ δ)
+    (hδn : (n : ℝ) * δ = 1 / 81) (ht : (t : ℝ) ≤ δ * c)
+    (hlarge : (n : ℝ) ^ 3 ≤ δ * c / 27) :
+    robustError n c t ≤ (1 / 3 + δ / 2) * c := by
+  have hnt : (n : ℝ) * t ≤ (c : ℝ) / 81 := by
+    have hm := mul_le_mul_of_nonneg_left ht (Nat.cast_nonneg n)
+    rw [← mul_assoc, hδn] at hm
+    linarith
+  have hβ : 0 ≤ (1 / 3 : ℝ) + δ / 2 := by linarith
+  have hβlower : (1 / 81 : ℝ) + δ / 27 ≤ (1 / 3 + δ / 2) ^ 4 := by
+    nlinarith [sq_nonneg δ, pow_nonneg hδ 3, pow_nonneg hδ 4]
+  apply robustError_le_mul hβ
+  have hm := mul_le_mul_of_nonneg_right hβlower (Nat.cast_nonneg c)
+  nlinarith
+
 end Hedetniemi
