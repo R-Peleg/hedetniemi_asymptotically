@@ -1441,4 +1441,24 @@ theorem theorem1_of_lemma7_witness {V : Type} [Fintype V] [DecidableEq V]
     hbaseGain, hgainExp.trans hexp, ?_⟩
   exact (evaluation_chromaticNumber_le H c').trans (by exact_mod_cast hc'le)
 
+/-- The canonical placement counts give the short-cycle expectation budget. -/
+theorem lemma7_cycle_placement_budget {V : Type*} [Fintype V] [DecidableEq V]
+    (hN : Fintype.card V = 2000000) :
+    (Fintype.card (CyclePlacement V 0) : ℝ) * (1 / 125000 : ℝ) ^ 3 +
+      (Fintype.card (CyclePlacement V 1) : ℝ) * (1 / 125000 : ℝ) ^ 4 +
+      (Fintype.card (CyclePlacement V 2) : ℝ) * (1 / 125000 : ℝ) ^ 5 ≤ 115000 := by
+  have h3 : ((2000000 : ℕ).choose 3 : ℝ) ≤ (2000000 : ℝ) ^ 3 / 6 := by
+    simpa only [show (3 : ℕ).factorial = 6 from rfl, Nat.cast_ofNat] using
+      (Nat.choose_le_pow_div (α := ℝ) 3 2000000)
+  have h4 : ((2000000 : ℕ).choose 4 : ℝ) ≤ (2000000 : ℝ) ^ 4 / 24 := by
+    simpa only [show (4 : ℕ).factorial = 24 from rfl, Nat.cast_ofNat] using
+      (Nat.choose_le_pow_div (α := ℝ) 4 2000000)
+  have h5 : ((2000000 : ℕ).choose 5 : ℝ) ≤ (2000000 : ℝ) ^ 5 / 120 := by
+    simpa only [show (5 : ℕ).factorial = 120 from rfl, Nat.cast_ofNat] using
+      (Nat.choose_le_pow_div (α := ℝ) 5 2000000)
+  simp only [card_cyclePlacement, hN, card_cycleTemplates_three, card_cycleTemplates_four,
+    card_cycleTemplates_five, Nat.cast_mul, Nat.cast_ofNat]
+  norm_num1 at h3 h4 h5 ⊢
+  nlinarith
+
 end Hedetniemi
