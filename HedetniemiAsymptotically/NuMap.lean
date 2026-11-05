@@ -14,4 +14,11 @@ theorem nuMap_eq_on_closed {V : Type*} {G : SimpleGraph V} {v w : V} {r σ : ℕ
   classical
   simp [nuMap, hw]
 
+/-- Both image colors being in the palette suffices to bound `ν`. -/
+theorem nuMap_lt {V : Type*} (G : SimpleGraph V) (v : V) {r σ c : ℕ}
+    (hr : r < c) (hσ : σ < c) (w : V) : nuMap G v r σ w < c := by
+  classical
+  unfold nuMap
+  split_ifs <;> assumption
+
 end Hedetniemi
