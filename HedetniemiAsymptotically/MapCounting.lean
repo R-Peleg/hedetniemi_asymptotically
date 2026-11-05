@@ -53,4 +53,22 @@ theorem card_maps_with_image_eq {V C : Type*} [Fintype V] [Fintype C]
     · funext v
       exact σ.apply_symm_apply (g v)
 
+/-- Partition a finite family of maps according to its exact image. -/
+theorem card_maps_with_images {V C : Type*} [Fintype V] [Fintype C]
+    [DecidableEq V] [DecidableEq C] (A : Finset (Finset C)) :
+    (univ.filter (fun f : V → C ↦ univ.image f ∈ A)).card =
+      ∑ s ∈ A, (univ.filter (fun f : V → C ↦ univ.image f = s)).card := by
+  classical
+  trans ∑ s ∈ A,
+    ((univ.filter (fun f : V → C ↦ univ.image f ∈ A)).filter
+      (fun f ↦ univ.image f = s)).card
+  · exact card_eq_sum_card_fiberwise (f := fun f : V → C ↦ univ.image f)
+      (fun f hf ↦ (mem_filter.mp hf).2)
+  apply sum_congr rfl
+  intro s hs
+  congr 1
+  ext f
+  simp only [mem_filter, mem_univ, true_and]
+  exact and_iff_right_of_imp (fun h ↦ h ▸ hs)
+
 end Hedetniemi
