@@ -30,4 +30,12 @@ theorem CoProper.of_exponentialLift {V W C : Type*} {G : SimpleGraph V} {H : Sim
   exact hfg (v := (v, i)) (w := (w, j))
     ⟨hvw, Or.inr hij, fun heq ↦ hne (congrArg Prod.snd heq)⟩
 
+/-- Ignoring a nonempty coordinate is injective on maps. -/
+theorem exponentialLift_injective {V W C : Type*} [Nonempty W] :
+    Function.Injective (Hedetniemi.exponentialLift (V := V) (W := W) (C := C)) := by
+  intro f g hfg
+  obtain ⟨w⟩ := ‹Nonempty W›
+  funext v
+  exact congrFun hfg (v, w)
+
 end Hedetniemi
