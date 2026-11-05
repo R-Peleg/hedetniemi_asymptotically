@@ -217,4 +217,18 @@ theorem robust_supports_form_clique {V C D : Type*} {G : Graph V}
   · exact (hne heq.symm).elim
   · exact hadj
 
+/-- The sets `V_b` of Lemma 5, defined by large fibers, are cliques. -/
+theorem large_vertexColorFibers_form_clique {V C D : Type*}
+    [Fintype V] [Fintype C] [DecidableEq V] [DecidableEq C] {G : Graph V}
+    (χ : (exponentialGraph G C).Coloring (C ⊕ D)) (b : C) :
+    ∀ v, Fintype.card V ^ 2 * Fintype.card C ^ (Fintype.card V - 2) <
+      (vertexColorFiber χ v b).card →
+    ∀ u, Fintype.card V ^ 2 * Fintype.card C ^ (Fintype.card V - 2) <
+      (vertexColorFiber χ u b).card → v ≠ u → G.Adj v u := by
+  apply robust_supports_form_clique
+  · intro v hv
+    exact large_vertexColorFiber_isRobust χ v b hv
+  · intro v hv
+    exact large_vertexColorFiber_has_unique_support χ v b hv
+
 end Hedetniemi
