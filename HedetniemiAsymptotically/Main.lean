@@ -1368,4 +1368,24 @@ theorem lemma7_strongProduct_chromatic_bound {V : Type*} [Fintype V] [DecidableE
   change (31 / 10 : ℝ) * q ≤ (k : ℝ)
   nlinarith
 
+/-- Rounded construction parameters exist above any prescribed threshold. -/
+theorem construction_rounding_large (δ : ℝ) (hδ : 0 ≤ δ) (hδsmall : δ ≤ 1 / 324)
+    (Q : ℕ) :
+    ∃ C₀ : ℕ, ∀ c ≥ C₀, ∃ q c' : ℕ,
+      2000000000 ≤ c ∧ Q ≤ q ∧ c' = ⌈(3 + 10 * δ) * q⌉₊ ∧ c' ≤ c ∧
+      (c : ℝ) - 4 < c' ∧ (c : ℝ) / (3 + 10 * δ) - 1 < q := by
+  let a := 3 + 10 * δ
+  have ha : 0 < a := by dsimp [a]; linarith
+  refine ⟨max 2000000000 ⌈a * (Q + 1)⌉₊, ?_⟩
+  intro c hc
+  have hcbig : 2000000000 ≤ c := (le_max_left _ _).trans hc
+  have hcceil : ⌈a * (Q + 1)⌉₊ ≤ c := (le_max_right _ _).trans hc
+  have hca : a * (Q + 1) ≤ (c : ℝ) := Nat.ceil_le.mp hcceil
+  have hdiv : (Q : ℝ) + 1 ≤ (c : ℝ) / a := by
+    apply (le_div_iff₀ ha).mpr
+    nlinarith
+  obtain ⟨q, c', heq, hle, hnear, hq⟩ := construction_rounding δ hδ hδsmall c
+  have hQ : (Q : ℝ) ≤ q := by dsimp [a] at hdiv; linarith
+  exact ⟨q, c', hcbig, by exact_mod_cast hQ, heq, hle, hnear, hq⟩
+
 end Hedetniemi
