@@ -47,15 +47,26 @@ Finite undirected cycle templates have kernel-checked counts `1`, `3`, and
 
 The strong-product counting bound is also checked: any finite coloring of
 `G ⊠ K_q` satisfies `|V(G)|q ≤ (number of colors) · indepNum(G)`.
+Every short cycle is represented by a canonical placement. Deleting one
+vertex per present placement removes all cycles of lengths three through
+five; the deletion budget, surviving vertex count, independence-number
+bound, and fractional-chromatic conclusion are checked.
+
+Theorem 1 is checked conditional on the quantitative Lemma 7 witness
+(`theorem1_of_lemma7_witness`). This includes looplessness of the exponential,
+both chromatic lower bounds, the evaluation coloring of the tensor product,
+and rounding for every sufficiently large integer target. The explicit
+factor is `1 + 1/1000000000`.
+
+A general expected-event-count formula is in `FiniteEventCount.lean`.
 
 Remaining paper results:
 
 - Lemma 7: random-graph edge-event probabilities, short-cycle expectation
   and independent-set union bounds, selection of a graph satisfying both,
-  and vertex deletion to obtain girth at least six. The deterministic
-  fractional-chromatic conclusion after deletion is checked.
-- Theorem 1: simplicity of the exponential, combination with Lemma 2 and Lemma 6,
-  and rounding to cover all sufficiently large integers.
+  completing the quantitative graph witness. The deterministic deletion
+  and fractional-chromatic conclusion are checked.
+- Theorem 1: apply the checked conditional theorem to that witness.
 
 Lemma 4 uses Mathlib's `Finset.erdos_ko_rado` from
 `Mathlib.Combinatorics.SetFamily.KruskalKatona`. Its image-size layers are
