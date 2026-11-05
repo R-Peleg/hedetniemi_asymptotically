@@ -24,4 +24,15 @@ theorem far_not_loopedAdj_neighbor {V : Type*} {G : SimpleGraph V} {v x y : V}
     exact hxn hy
   · exact hxe (evenNear_of_adj_adj hy hxy.symm)
 
+/-- The same exclusion holds for the entire closed neighborhood. -/
+theorem far_not_loopedAdj_closed {V : Type*} {G : SimpleGraph V} {v x y : V}
+    (hxe : ¬ EvenNear G v x) (hxn : ¬ G.Adj v x) (hy : y = v ∨ G.Adj v y) :
+    ¬ (loopedGraph G).Adj x y := by
+  rcases hy with rfl | hy
+  · intro hxy
+    rcases hxy with hxy | hxy
+    · exact hxe (Or.inl hxy)
+    · exact hxn hxy.symm
+  · exact far_not_loopedAdj_neighbor hxe hxn hy
+
 end Hedetniemi
