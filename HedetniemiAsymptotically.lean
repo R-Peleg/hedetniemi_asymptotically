@@ -1,1 +1,2 @@
 import HedetniemiAsymptotically.Main
+import HedetniemiAsymptotically.ProductSize
