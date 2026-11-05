@@ -1134,4 +1134,17 @@ theorem lemma7_fractional_bound_of_indepNum {V : Type*} [Fintype V] [DecidableEq
     _ ≤ fractionalChromaticNumber G := card_div_le_fractionalChromaticNumber G
       (by norm_num : 0 < (570000 : ℕ)) (fun S hS ↦ hS.card_le_indepNum.trans hind)
 
+/-- An independent set in `G ⊠ K_q` has no more vertices than a largest
+independent set of `G`. -/
+theorem strongProduct_indepSet_card_le {V W : Type*} [Finite V] (G : SimpleGraph V)
+    {S : Finset (V × W)} (hS : (strongProduct G (⊤ : SimpleGraph W)).IsIndepSet (S : Set (V × W))) :
+    S.card ≤ G.indepNum := by
+  classical
+  have hproj : G.IsIndepSet ((S.image Prod.fst : Finset V) : Set V) := by
+    simpa only [Finset.coe_image] using strongProduct_indepSet_project G hS
+  calc
+    S.card = (S.image Prod.fst).card :=
+      (Finset.card_image_iff.mpr (strongProduct_indepSet_fst_injective G hS)).symm
+    _ ≤ G.indepNum := hproj.card_le_indepNum
+
 end Hedetniemi
