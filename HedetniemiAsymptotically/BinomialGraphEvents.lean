@@ -39,4 +39,17 @@ theorem binomialRandom_avoids_edges {V : Type*} [Fintype V]
       exact Set.disjoint_left.mpr (fun _ heS heE ↦ Set.disjoint_left.mp h heS heE.1)
   rw [heq]
   exact setBernoulli_avoids_finset _ p S hS
+/-- A fixed vertex set is independent exactly when all its internal pairs are absent. -/
+theorem binomialRandom_isIndepSet {V : Type*} [Fintype V] [DecidableEq V]
+    (p : I) (S : Finset V) :
+    SimpleGraph.binomialRandom V p {G | G.IsIndepSet (S : Set V)} =
+      (toNNReal (σ p) : ℝ≥0∞) ^ S.card.choose 2 := by
+  have heq : {G : SimpleGraph V | G.IsIndepSet (S : Set V)} =
+      {G | Disjoint ((S.offDiag.image Sym2.mk.uncurry : Finset (Sym2 V)) : Set (Sym2 V))
+        G.edgeSet} := Set.ext (fun G ↦ isIndepSet_iff_disjoint_pairEdges G S)
+  rw [heq, binomialRandom_avoids_edges]
+  · rw [Sym2.card_image_offDiag]
+  · intro e he
+    obtain ⟨⟨v, w⟩, hvw, rfl⟩ := Finset.mem_image.mp he
+    exact (Finset.mem_offDiag.mp hvw).2.2
 end Hedetniemi
