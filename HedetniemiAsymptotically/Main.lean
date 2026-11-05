@@ -23,6 +23,7 @@ import HedetniemiAsymptotically.BinomialEstimate
 import HedetniemiAsymptotically.CycleTemplates
 import HedetniemiAsymptotically.PlaceCycleEdges
 import HedetniemiAsymptotically.CyclePlacement
+import HedetniemiAsymptotically.CyclePlacementProperties
 import Mathlib.Logic.Equiv.Fintype
 import Mathlib.Combinatorics.SetFamily.KruskalKatona
 import Mathlib.Tactic.Ring
@@ -1184,5 +1185,41 @@ theorem lemma7_independent_set_union_budget :
         (by norm_num) (1 / 125000) (by norm_num)
     _ ≤ Real.exp (-2) := Real.exp_le_exp.mpr (by norm_num [Nat.choose_two_right])
     _ < 1 / 4 := exp_neg_two_lt_quarter
+
+/-- Every cycle is covered by a canonical placement with the same vertices and edges. -/
+theorem cycle_has_cyclePlacement {V : Type*} [LinearOrder V] {G : SimpleGraph V}
+    {v : V} (w : G.Walk v v) (hc : w.IsCycle) {m : ℕ} (hl : w.length = m + 3) :
+    ∃ P : CyclePlacement V m,
+      (∀ x ∈ P.1.val, x ∈ w.support) ∧
+      ∀ e ∈ placeCycleEdges P.1.val P.1.property P.2.val, e ∈ G.edgeSet := by
+  classical
+  let f : Fin (m + 3) → V := fun i ↦ w.getVert i.val
+  have hf : Function.Injective f := by
+    intro i j hij
+    apply Fin.ext
+    exact hc.getVert_injOn' (by dsimp; omega) (by dsimp; omega) hij
+  obtain ⟨P, hP, he⟩ := exists_cyclePlacement f hf
+  refine ⟨P, ?_, ?_⟩
+  · intro x hx
+    rw [hP] at hx
+    obtain ⟨i, _, rfl⟩ := Finset.mem_image.mp hx
+    exact w.getVert_mem_support i.val
+  · intro e he'
+    rw [he] at he'
+    obtain ⟨i, _, rfl⟩ := Finset.mem_image.mp he'
+    rw [SimpleGraph.mem_edgeSet]
+    have hi : i.val < w.length := by omega
+    have hadj := w.adj_getVert_succ hi
+    by_cases h : i.val + 1 < m + 3
+    · have hs : (i + 1).val = i.val + 1 := by
+        change (i.val + 1) % (m + 3) = i.val + 1
+        exact Nat.mod_eq_of_lt h
+      simpa only [f, hs] using hadj
+    · have hlast : i.val + 1 = w.length := by omega
+      have hs : (i + 1).val = 0 := by
+        change (i.val + 1) % (m + 3) = 0
+        have : i.val + 1 = m + 3 := by omega
+        simp [this]
+      simpa only [f, hs, hlast, w.getVert_length, w.getVert_zero] using hadj
 
 end Hedetniemi
