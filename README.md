@@ -17,17 +17,21 @@ Specializing to `Fin c ⊕ Fin t` gives the paper's palette of `c+t` colors.
 
 Checked results include Lemma 2 (both the evaluation coloring and its Mathlib
 chromatic-number bound), Lemma 3 (existence of a suited coloring), Lemma 4
-(the full independent-family cardinality bound for a nonempty vertex set), and the
+(the full independent-family cardinality bound for a nonempty vertex set),
+Lemma 5 (the robust-color theorem with the paper's numerical hypotheses), and the
 basic symmetry, containment, and looplessness properties of exponential graphs.
-The robust-color definition and the local counting steps of Lemma 5 are
-also checked: fibers larger than `n² c^(n-2)` force robustness, contain a
-map with a uniquely supported primary color, and therefore define cliques
-`V_b`. The global counting and product estimates remain to be proved.
+Lemma 5 includes the large-fiber counting argument, the triangle-free clique
+bound, the upper count on maps avoiding large fibers, double counting of
+excluded vertex/color pairs, and the strict product estimate derived from
+Mathlib's strict concavity of `log`. The fourth-root error term and its basic
+arithmetic are in `RobustError.lean`.
+
+The strong product, adding loops, and exponential lifting from Section 4
+are defined and checked. Lifting is injective and preserves co-properness;
+it reflects co-properness when the second factor contains an edge.
 
 Remaining paper results:
 
-- Lemma 5: the triangle-free bound on `|V_b|`, global counting of the maps
-  avoiding large fibers, and the product estimate giving many robust colors.
 - Lemma 6: construction from a graph of girth at least six.
 - Lemma 7: probabilistic existence with explicit numerical bounds.
 - Theorem 1, including rounding to cover all sufficiently large integers.
