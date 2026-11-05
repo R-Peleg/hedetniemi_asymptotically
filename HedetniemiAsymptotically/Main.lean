@@ -3,6 +3,7 @@ import HedetniemiAsymptotically.SuitedColoring
 import HedetniemiAsymptotically.RobustColor
 import HedetniemiAsymptotically.IndependentSet
 import HedetniemiAsymptotically.MapCounting
+import HedetniemiAsymptotically.VertexColorFiber
 import Mathlib.Logic.Equiv.Fintype
 import Mathlib.Combinatorics.SetFamily.KruskalKatona
 
@@ -121,6 +122,33 @@ theorem exponential_independent_card_le {V : Type*} [Fintype V] [Nonempty V]
       simp only [star, Finset.filter_filter]
     _ ≤ Fintype.card V * c ^ (Fintype.card V - 1) := by
       simpa [star] using card_maps_containing_color_le (V := V) b
+
+/-- The first counting step of Lemma 5: a vertex/color fiber larger than
+`n² c^(n-2)` forces that color to be robust at the vertex. -/
+theorem large_vertexColorFiber_isRobust {V C D : Type*} [Fintype V] [Fintype C]
+    [DecidableEq V] [DecidableEq C] {G : Graph V}
+    (χ : (exponentialGraph G C).Coloring (C ⊕ D)) (v : V) (b : C)
+    (hlarge : Fintype.card V ^ 2 * Fintype.card C ^ (Fintype.card V - 2) <
+      (vertexColorFiber χ v b).card) : IsRobust χ v b := by
+  classical
+  intro f hf
+  by_contra hrobust
+  have hsmall : (vertexColorFiber χ v b).card ≤
+      Fintype.card V ^ 2 * Fintype.card C ^ (Fintype.card V - 2) := by
+    apply le_trans _ (card_maps_with_secondary_match_le v b f)
+    apply Finset.card_le_card
+    intro g hg
+    obtain ⟨hχg, hgv⟩ := (mem_vertexColorFiber χ v b g).mp hg
+    apply Finset.mem_filter.mpr
+    refine ⟨Finset.mem_univ _, hgv, ?_⟩
+    by_contra hmatch
+    apply χ.property (v := g) (w := f) ?_ (hχg.trans hf.symm)
+    intro w u hwu heq
+    by_cases hw : w = v
+    · subst w
+      exact hrobust ⟨u, Or.inr hwu, heq.symm.trans hgv⟩
+    · exact hmatch ⟨w, hw, u, heq⟩
+  exact (Nat.not_le_of_gt hlarge) hsmall
 
 /-- Lemma 3. A coloring with finitely many primary colors can be made suited
 by permuting its colors. Taking `C = Fin c` and `D = Fin t` gives the paper's
