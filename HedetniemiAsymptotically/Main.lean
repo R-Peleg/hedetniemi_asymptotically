@@ -12,6 +12,8 @@ import HedetniemiAsymptotically.RobustError
 import HedetniemiAsymptotically.EvenNear
 import HedetniemiAsymptotically.MuMap
 import HedetniemiAsymptotically.NuMap
+import HedetniemiAsymptotically.RestrictedColoring
+import HedetniemiAsymptotically.FiniteMap
 import Mathlib.Logic.Equiv.Fintype
 import Mathlib.Combinatorics.SetFamily.KruskalKatona
 import Mathlib.Tactic.Ring
@@ -685,5 +687,12 @@ theorem muMap_nuMap_coproper {V : Type*} (G : SimpleGraph V) (v : V) {q r σ : �
     · by_cases hyC : y.1 = v ∨ G.Adj v y.1
       · exact far_not_loopedAdj_closed hxE hxN hyC hxy.1
       · exact hrσ (by simpa [muMap, hxE, hxN, nuMap, hyC] using heq)
+
+/-- Adding loops preserves the triangle-free hypothesis needed for Lemma 5. -/
+theorem loopedGraph_triangleFree_of_six_le_egirth {V : Type*} {G : SimpleGraph V}
+    (hG : 6 ≤ G.egirth) : (loopedGraph G).IsTriangleFree := by
+  intro a b c habne hacne hbcne hab hac hbc
+  exact no_triangle_of_six_le_egirth hG (hab.resolve_left habne)
+    (hbc.resolve_left hbcne) (hac.resolve_left hacne).symm
 
 end Hedetniemi
