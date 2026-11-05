@@ -1,10 +1,12 @@
 # Hedetniemi's conjecture is asymptotically false
 
-Lean formalization in progress of He and Wigderson, `pdf/main.pdf`
+Lean formalization of He and Wigderson, `pdf/main.pdf`
 (arXiv:1906.06783v3). Uses Lean 4.35.0 and Mathlib commit
 `56a005855ea17e0b0958f73ec801ae140b0a1679`.
 
-Build with `lake build`.
+Build with `lake build`. The complete root target passes. The axiom audit of
+`Hedetniemi.theorem1` uses only `propext`, `Classical.choice`, and `Quot.sound`;
+the project contains no `sorry`, `admit`, or added axioms.
 
 Paper proofs belong in `HedetniemiAsymptotically/Main.lean`. Definitions
 and basic technical facts have their own modules. Cited results missing from
@@ -52,21 +54,22 @@ vertex per present placement removes all cycles of lengths three through
 five; the deletion budget, surviving vertex count, independence-number
 bound, and fractional-chromatic conclusion are checked.
 
-Theorem 1 is checked conditional on the quantitative Lemma 7 witness
-(`theorem1_of_lemma7_witness`). This includes looplessness of the exponential,
-both chromatic lower bounds, the evaluation coloring of the tensor product,
-and rounding for every sufficiently large integer target. The explicit
-factor is `1 + 1/1000000000`.
+Lemma 7 is checked in full (`lemma7_quantitative`), including the binomial
+random graph, exact finite-edge probabilities, short-cycle expectation,
+Markov and independent-set union bounds, graph selection, and deletion.
+It retains the vertex and independence-number bounds used by Theorem 1.
 
-A general expected-event-count formula is in `FiniteEventCount.lean`.
+Theorem 1 is proved in `HedetniemiAsymptotically/Main.lean` as
+`Hedetniemi.theorem1`. For every sufficiently large integer `c`, it constructs
+two finite simple graphs whose chromatic numbers are strictly greater than
+`(1 + 1/1000000000) * c`, while their tensor product has chromatic number
+at most `c`. The proof includes looplessness of the exponential and rounding
+for every integer target. The intermediate theorem
+`theorem1_of_lemma7_witness` records the construction from a quantitative witness.
 
-Remaining paper results:
-
-- Lemma 7: random-graph edge-event probabilities, short-cycle expectation
-  and independent-set union bounds, selection of a graph satisfying both,
-  completing the quantitative graph witness. The deterministic deletion
-  and fractional-chromatic conclusion are checked.
-- Theorem 1: apply the checked conditional theorem to that witness.
+Finite-edge probability formulas are in `BernoulliSetEvents.lean` and
+`BinomialGraphEvents.lean`; the general expected-event-count formula is in
+`FiniteEventCount.lean`.
 
 Lemma 4 uses Mathlib's `Finset.erdos_ko_rado` from
 `Mathlib.Combinatorics.SetFamily.KruskalKatona`. Its image-size layers are
