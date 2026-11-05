@@ -3,6 +3,7 @@ import Mathlib.Basic.Real.Basic
 import Mathlib.Algebra.Order.BigOperators.Group.Finset
 import Mathlib.Tactic.Positivity
 import Mathlib.Tactic.NormNum
+import Mathlib.Analysis.Complex.Exponential
 
 namespace Hedetniemi
 
@@ -20,5 +21,12 @@ theorem choose_mul_two_pow_le_three_pow (n k : ℕ) (hk : k ≤ n) :
         (Finset.mem_range.mpr (Nat.lt_succ_of_le hk))
     _ = ((1 : ℝ) + 2) ^ n := (add_pow 1 2 n).symm
     _ = (3 : ℝ) ^ n := by norm_num
+
+/-- A rational upper bound on the exponential used in the binomial estimate. -/
+theorem exp_two_thirds_le_two : Real.exp ((2 : ℝ) / 3) ≤ 2 := by
+  have h := Real.exp_lt_two_add_div_two_sub
+    (x := (2 : ℝ) / 3) (by norm_num) (by norm_num)
+  norm_num at h
+  exact h.le
 
 end Hedetniemi
