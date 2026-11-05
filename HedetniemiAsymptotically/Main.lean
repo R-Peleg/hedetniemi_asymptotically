@@ -5,6 +5,7 @@ import HedetniemiAsymptotically.IndependentSet
 import HedetniemiAsymptotically.MapCounting
 import HedetniemiAsymptotically.VertexColorFiber
 import HedetniemiAsymptotically.TriangleFree
+import HedetniemiAsymptotically.AvoidingLargeFibers
 import Mathlib.Logic.Equiv.Fintype
 import Mathlib.Combinatorics.SetFamily.KruskalKatona
 
@@ -245,5 +246,35 @@ theorem large_vertexColorFibers_card_le_two {V C D : Type*}
   intro v hv u hu hne
   exact large_vertexColorFibers_form_clique χ b v (Finset.mem_filter.mp hv).2
     u (Finset.mem_filter.mp hu).2 hne
+
+/-- Primary color classes in the avoiding family are covered by the small
+vertex/color fibers, as in the upper-bound argument of Lemma 5. -/
+theorem avoiding_primary_class_card_le {V C D : Type*}
+    [Fintype V] [Fintype C] [DecidableEq V] [DecidableEq C] [DecidableEq D] {G : Graph V}
+    (χ : (exponentialGraph G C).Coloring (C ⊕ D)) (hχ : IsSuited χ) (b : C) :
+    ((avoidingLargeFibers χ).filter (fun f ↦ χ.val f = Sum.inl b)).card ≤
+      Fintype.card V * (Fintype.card V ^ 2 * Fintype.card C ^ (Fintype.card V - 2)) := by
+  classical
+  let K := Fintype.card V ^ 2 * Fintype.card C ^ (Fintype.card V - 2)
+  let F (v : V) := if (vertexColorFiber χ v b).card ≤ K then vertexColorFiber χ v b else ∅
+  calc
+    _ ≤ (Finset.univ.biUnion F).card := by
+      apply Finset.card_le_card
+      intro f hf
+      obtain ⟨hfS, hfb⟩ := Finset.mem_filter.mp hf
+      obtain ⟨v, hfv⟩ := hχ f b hfb
+      have hsmall : (vertexColorFiber χ v b).card ≤ K := by
+        simpa only [hfv] using (mem_avoidingLargeFibers χ f).mp hfS v
+      exact Finset.mem_biUnion.mpr ⟨v, Finset.mem_univ _, by
+        simp [F, hsmall, hfb, hfv]⟩
+    _ ≤ ∑ v : V, (F v).card := Finset.card_biUnion_le
+    _ ≤ ∑ _v : V, K := by
+      apply Finset.sum_le_sum
+      intro v _
+      dsimp [F]
+      split_ifs with hv
+      · exact hv
+      · exact Nat.zero_le _
+    _ = _ := by simp [K]
 
 end Hedetniemi
