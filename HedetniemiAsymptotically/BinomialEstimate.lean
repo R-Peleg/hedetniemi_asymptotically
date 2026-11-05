@@ -35,4 +35,19 @@ theorem three_le_exp_eleven_tenths : (3 : ℝ) ≤ Real.exp (11 / 10) := by
   norm_num [Finset.sum_range_succ] at h
   exact le_trans (by norm_num) h
 
+/-- An exponential binomial bound suited to `k/n` near `0.285`. -/
+theorem choose_le_exp_bound (n k : ℕ) (hk : k ≤ n) :
+    (n.choose k : ℝ) ≤ Real.exp ((11 / 10 : ℝ) * n - (2 / 3 : ℝ) * (n - k : ℕ)) := by
+  have h2 : Real.exp ((n - k : ℕ) * (2 / 3 : ℝ)) ≤ (2 : ℝ) ^ (n - k) := by
+    rw [Real.exp_nat_mul]
+    exact pow_le_pow_left₀ (Real.exp_nonneg _) exp_two_thirds_le_two _
+  have h3 : (3 : ℝ) ^ n ≤ Real.exp ((n : ℝ) * (11 / 10)) := by
+    rw [Real.exp_nat_mul]
+    exact pow_le_pow_left₀ (by norm_num) three_le_exp_eleven_tenths _
+  have hm := (mul_le_mul_of_nonneg_left h2 (Nat.cast_nonneg (n.choose k))).trans
+    ((choose_mul_two_pow_le_three_pow n k hk).trans h3)
+  rw [Real.exp_sub]
+  apply (le_div_iff₀ (Real.exp_pos _)).mpr
+  simpa [mul_comm] using hm
+
 end Hedetniemi
