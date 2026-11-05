@@ -38,6 +38,8 @@ import Mathlib.Algebra.Order.Floor.Ring
 /-! Proofs appearing in He and Wigderson, *Hedetniemi's conjecture is
 asymptotically false* (arXiv:1906.06783v3). -/
 namespace Hedetniemi
+open MeasureTheory
+open scoped ENNReal
 
 /-- The reduction in Lemma 4: maps in an independent family have intersecting
 images. The nonempty vertex hypothesis also handles comparison of a map
@@ -1460,5 +1462,23 @@ theorem lemma7_cycle_placement_budget {V : Type*} [Fintype V] [DecidableEq V]
     card_cycleTemplates_five, Nat.cast_mul, Nat.cast_ofNat]
   norm_num1 at h3 h4 h5 ⊢
   nlinarith
+
+/-- Union bound over all vertex sets of a fixed size in Lemma 7. -/
+theorem independent_set_union_measure_le {V : Type*} [Fintype V] [DecidableEq V]
+    (μ : Measure (SimpleGraph V)) (k : ℕ) (a : ℝ≥0∞)
+    (hprob : ∀ S : Finset V, S.card = k → μ {G | G.IsIndepSet (S : Set V)} ≤ a) :
+    μ {G | ∃ S : Finset V, S.card = k ∧ G.IsIndepSet (S : Set V)} ≤
+      ((Fintype.card V).choose k : ℝ≥0∞) * a := by
+  classical
+  let T := {S : Finset V // S.card = k}
+  have heq : {G : SimpleGraph V | ∃ S : Finset V, S.card = k ∧ G.IsIndepSet (S : Set V)} =
+      ⋃ S : T, {G | G.IsIndepSet (S.val : Set V)} := by
+    ext G
+    simp [T]
+  rw [heq]
+  calc
+    _ ≤ ∑ S : T, μ {G | G.IsIndepSet (S.val : Set V)} := measure_iUnion_fintype_le μ _
+    _ ≤ ∑ _S : T, a := Finset.sum_le_sum (fun S _ ↦ hprob S.val S.property)
+    _ = _ := by simp [T, Fintype.card_finset_len, nsmul_eq_mul]
 
 end Hedetniemi
