@@ -34,6 +34,7 @@ import Mathlib.Tactic.Linarith
 import Mathlib.Tactic.FieldSimp
 import Mathlib.Combinatorics.SimpleGraph.Girth
 import Mathlib.Algebra.Order.Floor.Ring
+import Mathlib.MeasureTheory.Integral.Lebesgue.Markov
 
 /-! Proofs appearing in He and Wigderson, *Hedetniemi's conjecture is
 asymptotically false* (arXiv:1906.06783v3). -/
@@ -1492,5 +1493,29 @@ theorem indepNum_lt_of_no_independent_set {V : Type*} [Fintype V]
   have hk : k ≤ S.card := hS.card_eq.symm ▸ Nat.le_of_not_gt h
   obtain ⟨T, hTS, hT⟩ := Finset.exists_subset_card_eq hk
   exact hno T hT (hS.isIndepSet.mono (by exact hTS))
+
+/-- Markov's inequality supplies the cycle-deletion budget with failure probability at most one half. -/
+theorem shortCycle_markov_measure_le {V : Type*} [Fintype V] [LinearOrder V]
+    (μ : Measure (SimpleGraph V))
+    (hint : (∫⁻ G, ((∑ m ∈ Finset.range 3, (presentCyclePlacements G m).card : ℕ) : ℝ≥0∞) ∂μ)
+      ≤ 115000) :
+    μ {G | 230000 < ∑ m ∈ Finset.range 3, (presentCyclePlacements G m).card} ≤ 1 / 2 := by
+  let f : SimpleGraph V → ℝ≥0∞ := fun G ↦
+    ((∑ m ∈ Finset.range 3, (presentCyclePlacements G m).card : ℕ) : ℝ≥0∞)
+  have hsub : {G | 230000 < ∑ m ∈ Finset.range 3, (presentCyclePlacements G m).card} ⊆
+      {G | (230000 : ℝ≥0∞) ≤ f G} := by
+    intro G hG
+    change (230000 : ℝ≥0∞) ≤ ((∑ m ∈ Finset.range 3, (presentCyclePlacements G m).card : ℕ) : ℝ≥0∞)
+    have hnat : 230000 ≤ ∑ m ∈ Finset.range 3, (presentCyclePlacements G m).card := hG.le
+    exact_mod_cast hnat
+  calc
+    _ ≤ μ {G | (230000 : ℝ≥0∞) ≤ f G} := measure_mono hsub
+    _ ≤ (∫⁻ G, f G ∂μ) / 230000 :=
+      meas_ge_le_lintegral_div (Measurable.of_discrete : Measurable f).aemeasurable (by norm_num) (by simp)
+    _ ≤ 115000 / 230000 := ENNReal.div_le_div_right hint _
+    _ = 1 / 2 := by
+      apply (ENNReal.div_eq_div_iff (by norm_num) (by norm_num)
+        (by norm_num) (by norm_num)).mpr
+      norm_num
 
 end Hedetniemi
