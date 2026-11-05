@@ -1029,4 +1029,26 @@ theorem lemma6_rounded_no_coloring {V : Type*} [Fintype V] [DecidableEq V]
   obtain ⟨hc, hcq, herror⟩ := lemma6_numeric_conditions hδ.le hsmall hδn ht hclower hq4 hlarge
   exact lemma6_discrete_no_coloring hG hn hc hcq herror
 
+/-- A finite loopless graph with no `floor(x)`-coloring has chromatic
+number strictly greater than the real number `x`. -/
+theorem real_lt_chromaticNumber_of_no_coloring {W : Type*} [Fintype W]
+    (H : Graph W) (hloop : ∀ w, ¬ H.Adj w w) (x : ℝ)
+    (hempty : IsEmpty (H.Coloring (Fin (Nat.floor x)))) :
+    x < ((H.toSimpleGraph hloop).chromaticNumber.toNat : ℝ) := by
+  have hfin : (H.toSimpleGraph hloop).chromaticNumber ≠ ⊤ :=
+    (lt_of_le_of_lt (H.toSimpleGraph hloop).chromaticNumber_le_card
+      (ENat.natCast_lt_top _)).ne
+  have hlt : Nat.floor x < (H.toSimpleGraph hloop).chromaticNumber.toNat := by
+    apply lt_of_not_ge
+    intro hle
+    have hle' : (H.toSimpleGraph hloop).chromaticNumber ≤ (Nat.floor x : ℕ∞) := by
+      rw [← ENat.natCast_toNat hfin]
+      exact_mod_cast hle
+    obtain ⟨χ⟩ := SimpleGraph.chromaticNumber_le_iff_colorable.mp hle'
+    exact hempty.false ⟨fun w ↦ χ w, fun {_ _} h ↦ χ.valid h⟩
+  have hreal : ((Nat.floor x + 1 : ℕ) : ℝ) ≤
+      ((H.toSimpleGraph hloop).chromaticNumber.toNat : ℝ) := by
+    exact_mod_cast Nat.succ_le_of_lt hlt
+  exact (Nat.lt_floor_add_one x).trans_le (by simpa using hreal)
+
 end Hedetniemi
