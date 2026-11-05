@@ -602,4 +602,17 @@ theorem no_five_walk_of_six_le_egirth {V : Type*} {G : SimpleGraph V}
   have hbound := hG.trans hw.egirth_le_length
   norm_num [w] at hbound
 
+/-- The even part of a radius-two ball is independent when the girth is at least six. -/
+theorem evenNear_not_adj_of_six_le_egirth {V : Type*} {G : SimpleGraph V}
+    (hG : 6 ≤ G.egirth) (v : V) {g h : V}
+    (hg : EvenNear G v g) (hh : EvenNear G v h) : ¬ G.Adj g h := by
+  intro hgh
+  rcases hg with rfl | ⟨a, hva, hag⟩
+  · rcases hh with rfl | ⟨b, hvb, hbh⟩
+    · exact hgh.ne rfl
+    · exact no_triangle_of_six_le_egirth hG hvb hbh hgh.symm
+  · rcases hh with rfl | ⟨b, hvb, hbh⟩
+    · exact no_triangle_of_six_le_egirth hG hva hag hgh
+    · exact no_five_walk_of_six_le_egirth hG hva hag hgh hbh.symm hvb.symm
+
 end Hedetniemi
