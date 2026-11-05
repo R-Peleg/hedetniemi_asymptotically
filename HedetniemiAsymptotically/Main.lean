@@ -1099,4 +1099,17 @@ theorem strongProduct_indepSet_project {V W : Type*} (G : SimpleGraph V)
   · exact Or.inl hxy
   · exact Or.inr (by simpa using hxy)
 
+/-- An independent set in `G ⊠ K_q` has at most one vertex over each
+vertex of `G`, so projection is injective on that set. -/
+theorem strongProduct_indepSet_fst_injective {V W : Type*} (G : SimpleGraph V)
+    {S : Set (V × W)} (hS : (strongProduct G (⊤ : SimpleGraph W)).IsIndepSet S) :
+    Set.InjOn Prod.fst S := by
+  intro x hx y hy hfst
+  by_contra hne
+  apply hS hx hy hne
+  refine ⟨Or.inl hfst, ?_, hne⟩
+  apply Or.inr
+  change x.2 ≠ y.2
+  exact fun hsnd ↦ hne (Prod.ext hfst hsnd)
+
 end Hedetniemi
