@@ -32,4 +32,14 @@ theorem exponentialGraph_antitone {G H : Graph V}
   intro v w hvw
   exact hfg (h hvw)
 
+/-- Precisely when the base has no coloring, its exponential has no loops. -/
+theorem exponentialGraph_loopless_iff (G : Graph V) :
+    (∀ f : V → C, ¬ (exponentialGraph G C).Adj f f) ↔
+      IsEmpty (G.Coloring C) := by
+  constructor
+  · intro h
+    exact ⟨fun f ↦ h f.val f.property⟩
+  · intro h f hf
+    exact h.false ⟨f, hf⟩
+
 end Hedetniemi
