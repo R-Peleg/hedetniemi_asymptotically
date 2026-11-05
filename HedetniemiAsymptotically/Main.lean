@@ -21,6 +21,8 @@ import HedetniemiAsymptotically.ConstructionDelta
 import HedetniemiAsymptotically.FractionalChromaticLowerBound
 import HedetniemiAsymptotically.BinomialEstimate
 import HedetniemiAsymptotically.CycleTemplates
+import HedetniemiAsymptotically.PlaceCycleEdges
+import HedetniemiAsymptotically.CyclePlacement
 import Mathlib.Logic.Equiv.Fintype
 import Mathlib.Combinatorics.SetFamily.KruskalKatona
 import Mathlib.Tactic.Ring

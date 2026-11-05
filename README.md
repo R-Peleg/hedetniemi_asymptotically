@@ -38,11 +38,23 @@ Its rounded version uses `δ = 1/(81n)`, `c = ceil((3+10δ)q)`, and
 as required by the paper's convention; the coloring obstruction also holds
 for graphs with loops.
 
+Fractional colorings and the fractional chromatic number are defined in
+their own files. Checked basic results include nonnegativity, the singleton
+upper bound, and the independence-ratio lower bound used in Lemma 7.
+The numerical short-cycle and independent-set budgets of Lemma 7 are checked.
+Finite undirected cycle templates have kernel-checked counts `1`, `3`, and
+`12` on three, four, and five vertices respectively.
+
+The strong-product counting bound is also checked: any finite coloring of
+`G ⊠ K_q` satisfies `|V(G)|q ≤ (number of colors) · indepNum(G)`.
+
 Remaining paper results:
 
-- Lemma 7: probabilistic existence with explicit numerical bounds.
-- Theorem 1: the base graph's strong-product chromatic lower bound,
-  simplicity of the exponential, combination with Lemma 2 and Lemma 6,
+- Lemma 7: random-graph edge-event probabilities, short-cycle expectation
+  and independent-set union bounds, selection of a graph satisfying both,
+  and vertex deletion to obtain girth at least six. The deterministic
+  fractional-chromatic conclusion after deletion is checked.
+- Theorem 1: simplicity of the exponential, combination with Lemma 2 and Lemma 6,
   and rounding to cover all sufficiently large integers.
 
 Lemma 4 uses Mathlib's `Finset.erdos_ko_rado` from
