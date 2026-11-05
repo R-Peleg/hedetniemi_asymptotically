@@ -30,11 +30,20 @@ The strong product, adding loops, and exponential lifting from Section 4
 are defined and checked. Lifting is injective and preserves co-properness;
 it reflects co-properness when the second factor contains an edge.
 
+Lemma 6 is checked, including both map cliques, both color selections,
+the final coloring contradiction, and the numerical parameter estimates.
+Its rounded version uses `δ = 1/(81n)`, `c = ceil((3+10δ)q)`, and
+`t = floor(δc)` with the explicit sufficient threshold
+`q ≥ ceil(9n³/δ)`. The chromatic-number form records looplessness explicitly,
+as required by the paper's convention; the coloring obstruction also holds
+for graphs with loops.
+
 Remaining paper results:
 
-- Lemma 6: construction from a graph of girth at least six.
 - Lemma 7: probabilistic existence with explicit numerical bounds.
-- Theorem 1, including rounding to cover all sufficiently large integers.
+- Theorem 1: the base graph's strong-product chromatic lower bound,
+  simplicity of the exponential, combination with Lemma 2 and Lemma 6,
+  and rounding to cover all sufficiently large integers.
 
 Lemma 4 uses Mathlib's `Finset.erdos_ko_rado` from
 `Mathlib.Combinatorics.SetFamily.KruskalKatona`. Its image-size layers are
