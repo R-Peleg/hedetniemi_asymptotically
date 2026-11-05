@@ -17,6 +17,7 @@ import HedetniemiAsymptotically.FiniteMap
 import HedetniemiAsymptotically.FiniteMuMap
 import HedetniemiAsymptotically.FiniteNuMap
 import HedetniemiAsymptotically.Recoloring
+import HedetniemiAsymptotically.ConstructionDelta
 import Mathlib.Logic.Equiv.Fintype
 import Mathlib.Combinatorics.SetFamily.KruskalKatona
 import Mathlib.Tactic.Ring
@@ -24,6 +25,7 @@ import Mathlib.Analysis.Convex.SpecificFunctions.Basic
 import Mathlib.Tactic.Linarith
 import Mathlib.Tactic.FieldSimp
 import Mathlib.Combinatorics.SimpleGraph.Girth
+import Mathlib.Algebra.Order.Floor.Ring
 
 /-! Proofs appearing in He and Wigderson, *Hedetniemi's conjecture is
 asymptotically false* (arXiv:1906.06783v3). -/
@@ -985,5 +987,46 @@ theorem lemma6_numeric_conditions {n q c t : ℕ} {δ : ℝ}
   refine ⟨by exact_mod_cast hc16, by exact_mod_cast hcq, ?_⟩
   push_cast
   nlinarith
+
+/-- Lemma 6 with explicit integer rounding and an explicit sufficient
+threshold for `q`. Set `δ=1/(81n)`, `c=ceil((3+10δ)q)`, and `t=floor(δc)`.
+The exponential graph has no `(c+t)`-coloring, as required for the paper's
+strict lower bound on its chromatic number. -/
+theorem lemma6_rounded_no_coloring {V : Type*} [Fintype V] [DecidableEq V]
+    {G : SimpleGraph V} (hG : 6 ≤ G.egirth) (hn : 4 ≤ Fintype.card V)
+    (q : ℕ) (hq : Nat.ceil (9 * (Fintype.card V : ℝ) ^ 3 /
+      constructionDelta (Fintype.card V)) ≤ q) :
+    let δ := constructionDelta (Fintype.card V)
+    let c := Nat.ceil ((3 + 10 * δ) * (q : ℝ))
+    let t := Nat.floor (δ * (c : ℝ))
+    IsEmpty ((exponentialGraph (Graph.ofSimpleGraph
+      (strongProduct G (⊤ : SimpleGraph (Fin q)))) (Fin c)).Coloring (Fin (c + t))) := by
+  let n := Fintype.card V
+  let δ := constructionDelta n
+  let c := Nat.ceil ((3 + 10 * δ) * (q : ℝ))
+  let t := Nat.floor (δ * (c : ℝ))
+  change IsEmpty ((exponentialGraph (Graph.ofSimpleGraph
+    (strongProduct G (⊤ : SimpleGraph (Fin q)))) (Fin c)).Coloring (Fin (c + t)))
+  have hn0 : 0 < n := by dsimp [n]; omega
+  have hn1 : (1 : ℝ) ≤ n := by exact_mod_cast (show 1 ≤ n by omega)
+  have hn3 : (1 : ℝ) ≤ (n : ℝ) ^ 3 := by
+    simpa using pow_le_pow_left₀ (show (0 : ℝ) ≤ 1 by norm_num) hn1 3
+  have hδ : 0 < δ := constructionDelta_pos hn0
+  have hsmall : δ ≤ 1 / 324 := constructionDelta_le hn
+  have hδn : (n : ℝ) * δ = 1 / 81 := mul_constructionDelta hn0
+  have ht : (t : ℝ) ≤ δ * c := Nat.floor_le (mul_nonneg hδ.le (Nat.cast_nonneg c))
+  have hclower : (3 + 10 * δ) * q ≤ (c : ℝ) := Nat.le_ceil _
+  have hqbound : 9 * (n : ℝ) ^ 3 / δ ≤ q := Nat.ceil_le.mp hq
+  have hbig : 9 * (n : ℝ) ^ 3 ≤ δ * q := by
+    have hm := (div_le_iff₀ hδ).mp hqbound
+    nlinarith
+  have hq4 : 4 ≤ δ * q := by nlinarith
+  have hc3 : (3 : ℝ) * q ≤ c := by
+    nlinarith [mul_nonneg hδ.le (Nat.cast_nonneg q)]
+  have hlarge : (n : ℝ) ^ 3 ≤ δ * c / 27 := by
+    have hm := mul_le_mul_of_nonneg_left hc3 hδ.le
+    nlinarith
+  obtain ⟨hc, hcq, herror⟩ := lemma6_numeric_conditions hδ.le hsmall hδn ht hclower hq4 hlarge
+  exact lemma6_discrete_no_coloring hG hn hc hcq herror
 
 end Hedetniemi
