@@ -19,4 +19,9 @@ def exponentialGraph (G : Graph V) (C : Type*) : Graph (V → C) where
   Adj := CoProper G
   symm := fun {_ _} h ↦ coProper_symm h
 
+/-- A loop in the exponential graph is exactly a proper coloring of the base. -/
+theorem exponentialGraph_loop_iff (G : Graph V) (f : V → C) :
+    (exponentialGraph G C).Adj f f ↔ ∀ ⦃v w⦄, G.Adj v w → f v ≠ f w :=
+  Iff.rfl
+
 end Hedetniemi
