@@ -801,4 +801,15 @@ theorem exists_high_robust_colors {V : Type*} {G : Graph V} {q c t : ℕ}
   obtain ⟨hrob, hhigh⟩ := Finset.mem_filter.mp (hσ ⟨i, rfl⟩)
   exact ⟨hhigh, (mem_robustColors χ v (σ i)).mp hrob⟩
 
+/-- Suitedness makes a high primary color on `μ_r` equal to `r`. -/
+theorem suited_finiteMuMap_color_eq_parameter {V : Type*} {G : SimpleGraph V} {q c t : ℕ}
+    (χ : (exponentialGraph (Graph.ofSimpleGraph
+      (strongProduct G (⊤ : SimpleGraph (Fin q)))) (Fin c)).Coloring (Fin c ⊕ Fin t))
+    (hχ : IsSuited χ) (v : V) (hq : 2 * q ≤ c) (r b : Fin c)
+    (hb : 2 * q ≤ b.val) (hcolor : χ.val (finiteMuMap G v hq r) = Sum.inl b) : b = r := by
+  obtain ⟨x, hx⟩ := hχ _ b hcolor
+  have hnat : muMap G v q r.val x = b.val := congrArg Fin.val hx
+  have hlarge : 2 * q ≤ muMap G v q r.val x := by rw [hnat]; exact hb
+  exact Fin.ext (hnat.symm.trans (muMap_eq_parameter_of_ge G v x hlarge))
+
 end Hedetniemi
