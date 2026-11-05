@@ -32,4 +32,11 @@ theorem cycle_edge_injective {m : ℕ} (σ : Equiv.Perm (Fin (m + 3))) :
     have hv : (2 : ℕ) = 0 := congrArg Fin.val hz
     omega
 
+/-- A cycle pattern has exactly as many edges as vertices. -/
+theorem card_cycleEdges {m : ℕ} (σ : Equiv.Perm (Fin (m + 3))) :
+    (cycleEdges σ).card = m + 3 := by
+  classical
+  rw [cycleEdges, Finset.card_image_of_injective _ (cycle_edge_injective σ)]
+  simp
+
 end Hedetniemi
