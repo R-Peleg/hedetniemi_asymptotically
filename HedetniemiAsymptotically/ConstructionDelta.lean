@@ -18,4 +18,10 @@ theorem mul_constructionDelta {n : ℕ} (hn : 0 < n) :
   unfold constructionDelta
   field_simp
 
+theorem constructionDelta_le {n : ℕ} (hn : 4 ≤ n) : constructionDelta n ≤ 1 / 324 := by
+  have hnR : (4 : ℝ) ≤ n := by exact_mod_cast hn
+  unfold constructionDelta
+  apply (div_le_iff₀ (show (0 : ℝ) < 81 * n by positivity)).mpr
+  nlinarith
+
 end Hedetniemi
