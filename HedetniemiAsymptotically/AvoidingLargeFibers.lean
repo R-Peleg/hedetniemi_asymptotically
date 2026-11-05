@@ -18,4 +18,12 @@ noncomputable def avoidingLargeFibers {V C D : Type*} [Fintype V] [Fintype C]
   classical
   simp [avoidingLargeFibers, Fintype.mem_piFinset]
 
+/-- Independent choices of the allowed colors give the product formula
+for the size of the avoiding family. -/
+theorem card_avoidingLargeFibers {V C D : Type*} [Fintype V] [Fintype C]
+    [DecidableEq V] {G : Graph V}
+    (χ : (exponentialGraph G C).Coloring (C ⊕ D)) :
+    (avoidingLargeFibers χ).card = ∏ v, (allowedColors χ v).card :=
+  Fintype.card_piFinset _
+
 end Hedetniemi
