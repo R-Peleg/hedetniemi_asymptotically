@@ -24,4 +24,12 @@ theorem exponentialGraph_loop_iff (G : Graph V) (f : V → C) :
     (exponentialGraph G C).Adj f f ↔ ∀ ⦃v w⦄, G.Adj v w → f v ≠ f w :=
   Iff.rfl
 
+/-- Exponentiation reverses containment of edge sets. -/
+theorem exponentialGraph_antitone {G H : Graph V}
+    (h : ∀ ⦃v w⦄, G.Adj v w → H.Adj v w) {f g : V → C}
+    (hfg : (exponentialGraph H C).Adj f g) :
+    (exponentialGraph G C).Adj f g := by
+  intro v w hvw
+  exact hfg (h hvw)
+
 end Hedetniemi
