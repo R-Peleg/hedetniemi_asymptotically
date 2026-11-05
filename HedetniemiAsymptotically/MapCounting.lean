@@ -1,5 +1,6 @@
 import Mathlib.Logic.Equiv.Fintype
 import Mathlib.Data.Fintype.BigOperators
+import Mathlib.Algebra.Order.BigOperators.Group.Finset
 
 /-! Elementary finite-map counts used in the paper's counting arguments. -/
 namespace Hedetniemi
@@ -121,5 +122,41 @@ theorem card_maps_fixing_two {V C : Type*} [Fintype V] [Fintype C]
     _ = _ := by
       rw [hcard, prod_update_of_mem (by simp [hvw])]
       simp [sdiff_singleton_eq_erase, card_erase_of_mem, hvw, Nat.sub_sub]
+
+/-- After fixing one coordinate, maps that share any value with a prescribed
+map at some other coordinate number at most `|V|² * |C|^(|V|-2)`. -/
+theorem card_maps_with_secondary_match_le {V C : Type*} [Fintype V] [Fintype C]
+    [DecidableEq V] [DecidableEq C] (v : V) (b : C) (f : V → C) :
+    (univ.filter (fun g : V → C ↦ g v = b ∧
+      ∃ w, w ≠ v ∧ ∃ u, g w = f u)).card ≤
+      Fintype.card V ^ 2 * Fintype.card C ^ (Fintype.card V - 2) := by
+  classical
+  let T (w u : V) := univ.filter (fun g : V → C ↦ g v = b ∧ g w = f u)
+  calc
+    _ ≤ ((univ.erase v).biUnion (fun w ↦ univ.biUnion (T w))).card := by
+      apply card_le_card
+      intro g hg
+      obtain ⟨hgv, w, hw, u, hgu⟩ := (mem_filter.mp hg).2
+      exact mem_biUnion.mpr ⟨w, mem_erase.mpr ⟨hw, mem_univ _⟩,
+        mem_biUnion.mpr ⟨u, mem_univ _, mem_filter.mpr ⟨mem_univ _, hgv, hgu⟩⟩⟩
+    _ ≤ ∑ w ∈ univ.erase v, (univ.biUnion (T w)).card := card_biUnion_le
+    _ ≤ ∑ _w ∈ univ.erase v,
+        Fintype.card V * Fintype.card C ^ (Fintype.card V - 2) := by
+      apply sum_le_sum
+      intro w hw
+      calc
+        _ ≤ ∑ u : V, (T w u).card := card_biUnion_le
+        _ = _ := by
+          have hcount (u : V) : (T w u).card = Fintype.card C ^ (Fintype.card V - 2) :=
+            card_maps_fixing_two v w (mem_erase.mp hw).1.symm b (f u)
+          simp_rw [hcount]
+          simp
+    _ ≤ _ := by
+      rw [sum_const_nat (fun _ _ ↦ rfl)]
+      calc
+        _ ≤ Fintype.card V *
+            (Fintype.card V * Fintype.card C ^ (Fintype.card V - 2)) :=
+          Nat.mul_le_mul_right _ (by simp)
+        _ = _ := by rw [pow_two, Nat.mul_assoc]
 
 end Hedetniemi
