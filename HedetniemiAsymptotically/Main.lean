@@ -320,4 +320,38 @@ theorem card_avoidingLargeFibers_le {V : Type*} [Fintype V] [Nonempty V]
       simp only [he, pow_succ]
       ring
 
+/-- Double counting the excluded vertex/color pairs gives the sum estimate
+`∑ s(v) ≥ (n-2)c` used for the product bound in Lemma 5. -/
+theorem sum_card_allowedColors_ge {V C D : Type*} [Fintype V] [Fintype C]
+    [DecidableEq V] [DecidableEq C] {G : Graph V} (hG : G.IsTriangleFree)
+    (χ : (exponentialGraph G C).Coloring (C ⊕ D)) :
+    (Fintype.card V - 2) * Fintype.card C ≤ ∑ v, (allowedColors χ v).card := by
+  classical
+  let K := Fintype.card V ^ 2 * Fintype.card C ^ (Fintype.card V - 2)
+  let E (v : V) := Finset.univ.filter (fun b : C ↦ K < (vertexColorFiber χ v b).card)
+  let B (b : C) := Finset.univ.filter (fun v : V ↦ K < (vertexColorFiber χ v b).card)
+  have hswap : (∑ v, (E v).card) = ∑ b, (B b).card := by
+    simp only [E, B, Finset.card_eq_sum_ones, Finset.sum_filter]
+    exact Finset.sum_comm
+  have htotal : (∑ v, (allowedColors χ v).card) + (∑ b, (B b).card) =
+      Fintype.card V * Fintype.card C := by
+    rw [← hswap, ← Finset.sum_add_distrib]
+    calc
+      _ = ∑ _v : V, Fintype.card C := by
+        apply Finset.sum_congr rfl
+        intro v _
+        simpa [allowedColors, E, K, not_le] using
+          Finset.card_filter_add_card_filter_not (s := (Finset.univ : Finset C))
+            (fun b ↦ (vertexColorFiber χ v b).card ≤ K)
+      _ = _ := by simp
+  have hbound : (∑ b, (B b).card) ≤ 2 * Fintype.card C := by
+    calc
+      _ ≤ ∑ _b : C, 2 := by
+        apply Finset.sum_le_sum
+        intro b _
+        exact large_vertexColorFibers_card_le_two hG χ b
+      _ = _ := by simp [Nat.mul_comm]
+  rw [Nat.sub_mul]
+  omega
+
 end Hedetniemi
