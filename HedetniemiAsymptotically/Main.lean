@@ -695,4 +695,20 @@ theorem loopedGraph_triangleFree_of_six_le_egirth {V : Type*} {G : SimpleGraph V
   exact no_triangle_of_six_le_egirth hG (hab.resolve_left habne)
     (hbc.resolve_left hbcne) (hac.resolve_left hacne).symm
 
+/-- The pigeonhole step in Lemma 6: a clique of `t+1` vertices cannot all
+receive the `t` secondary colors. -/
+theorem secondary_clique_impossible {V C : Type*} {t : ℕ} {G : Graph V}
+    (χ : G.Coloring (C ⊕ Fin t)) (F : Fin (t + 1) → V)
+    (hF : ∀ i j, i ≠ j → G.Adj (F i) (F j))
+    (hsecondary : ∀ i, ∃ d : Fin t, χ.val (F i) = Sum.inr d) : False := by
+  classical
+  choose d hd using hsecondary
+  have hinj : Function.Injective d := by
+    intro i j hij
+    by_contra hne
+    apply χ.property (hF i j hne)
+    rw [hd i, hd j, hij]
+  have hcard := Fintype.card_le_of_injective d hinj
+  simp at hcard
+
 end Hedetniemi
