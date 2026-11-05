@@ -1596,4 +1596,15 @@ theorem binomialRandom_expected_cyclePlacements {V : Type*} [Fintype V] [LinearO
   simp only [binomialRandom_cyclePlacement_probability, Finset.sum_const, Finset.card_univ,
     nsmul_eq_mul]
 
+/-- The independent-set failure probability in Lemma 7 is below one quarter. -/
+theorem lemma7_independent_set_bad_probability {V : Type*} [Fintype V] [DecidableEq V]
+    (hN : Fintype.card V = 2000000) (p : I) (hp : (p : ℝ) = 1 / 125000) :
+    SimpleGraph.binomialRandom V p
+      {G | ∃ S : Finset V, S.card = 570000 ∧ G.IsIndepSet (S : Set V)} < 1 / 4 := by
+  have h := independent_set_union_measure_le (SimpleGraph.binomialRandom V p) 570000
+    ((toNNReal (σ p) : ℝ≥0∞) ^ ((570000 : ℕ).choose 2)) (fun S hS ↦ by
+      rw [binomialRandom_isIndepSet, hS])
+  rw [hN] at h
+  exact h.trans_lt (lemma7_independent_set_union_budget_ennreal p hp)
+
 end Hedetniemi
