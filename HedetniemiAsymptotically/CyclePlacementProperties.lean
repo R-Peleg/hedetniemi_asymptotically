@@ -38,4 +38,16 @@ theorem exists_cyclePlacement {V : Type*} [LinearOrder V] {m : ℕ}
   funext i
   simp only [Function.comp_apply, Sym2.map_mk, hσ]
 
+/-- Placed templates have the right edge count and no loops. -/
+theorem cyclePlacement_properties {V : Type*} [LinearOrder V] {m : ℕ}
+    (P : CyclePlacement V m) :
+    (placeCycleEdges P.1.val P.1.property P.2.val).card = m + 3 ∧
+      ∀ e ∈ placeCycleEdges P.1.val P.1.property P.2.val, ¬ e.IsDiag := by
+  obtain ⟨hcard, hdiag⟩ := cycleTemplate_properties P.2.property
+  refine ⟨(card_placeCycleEdges _ _ _).trans hcard, ?_⟩
+  intro e he
+  obtain ⟨d, hd, rfl⟩ := Finset.mem_image.mp he
+  rw [Sym2.isDiag_map (P.1.val.orderEmbOfFin P.1.property).injective]
+  exact hdiag d hd
+
 end Hedetniemi
