@@ -6,6 +6,7 @@ import HedetniemiAsymptotically.MapCounting
 import HedetniemiAsymptotically.VertexColorFiber
 import HedetniemiAsymptotically.TriangleFree
 import HedetniemiAsymptotically.AvoidingLargeFibers
+import HedetniemiAsymptotically.RobustColors
 import Mathlib.Logic.Equiv.Fintype
 import Mathlib.Combinatorics.SetFamily.KruskalKatona
 import Mathlib.Tactic.Ring
@@ -352,6 +353,28 @@ theorem sum_card_allowedColors_ge {V C D : Type*} [Fintype V] [Fintype C]
         exact large_vertexColorFibers_card_le_two hG χ b
       _ = _ := by simp [Nat.mul_comm]
   rw [Nat.sub_mul]
+  omega
+
+/-- Every excluded primary color is robust. Thus the number of robust
+colors is at least `c - s(v)`. -/
+theorem card_robustColors_ge_excluded {V C D : Type*} [Fintype V] [Fintype C]
+    [DecidableEq V] {G : Graph V}
+    (χ : (exponentialGraph G C).Coloring (C ⊕ D)) (v : V) :
+    Fintype.card C - (allowedColors χ v).card ≤ (robustColors χ v).card := by
+  classical
+  have hcover : (allowedColors χ v).card + (robustColors χ v).card ≥ Fintype.card C := by
+    calc
+      Fintype.card C = (Finset.univ : Finset C).card := Finset.card_univ.symm
+      _ = (allowedColors χ v ∪ robustColors χ v).card := by
+        congr 1
+        ext b
+        simp only [Finset.mem_univ, Finset.mem_union, true_iff]
+        by_cases hb : b ∈ allowedColors χ v
+        · exact Or.inl hb
+        · exact Or.inr ((mem_robustColors χ v b).mpr
+            (large_vertexColorFiber_isRobust χ v b
+              (Nat.lt_of_not_ge (fun h ↦ hb ((mem_allowedColors χ v b).mpr h)))))
+      _ ≤ _ := Finset.card_union_le _ _
   omega
 
 end Hedetniemi
