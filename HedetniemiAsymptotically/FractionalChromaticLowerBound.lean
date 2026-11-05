@@ -1,5 +1,6 @@
 import HedetniemiAsymptotically.FractionalColoring
 import Mathlib.Algebra.BigOperators.Ring.Finset
+import HedetniemiAsymptotically.FractionalChromaticNumber
 
 namespace Hedetniemi
 
@@ -32,5 +33,18 @@ theorem FractionalColoring.card_le_mul_totalWeight {V : Type*} [Fintype V] [Deci
       · rw [χ.independent S hS]
         simp
     _ = (k : ℝ) * χ.totalWeight := by simp only [FractionalColoring.totalWeight, Finset.mul_sum]
+
+/-- The independence-ratio lower bound used in Lemma 7. -/
+theorem card_div_le_fractionalChromaticNumber {V : Type*} [Fintype V] [DecidableEq V]
+    (G : SimpleGraph V) {k : ℕ} (hk : 0 < k)
+    (hbound : ∀ S : Finset V, G.IsIndepSet (S : Set V) → S.card ≤ k) :
+    (Fintype.card V : ℝ) / k ≤ fractionalChromaticNumber G := by
+  unfold fractionalChromaticNumber
+  have hnonempty : (Set.range (fun χ : FractionalColoring G ↦ χ.totalWeight)).Nonempty :=
+    ⟨(singletonFractionalColoring G).totalWeight, ⟨singletonFractionalColoring G, rfl⟩⟩
+  apply le_csInf hnonempty
+  rintro y ⟨χ, rfl⟩
+  apply (div_le_iff₀ (show (0 : ℝ) < k by exact_mod_cast hk)).mpr
+  simpa [mul_comm] using χ.card_le_mul_totalWeight k hbound
 
 end Hedetniemi
