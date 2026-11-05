@@ -29,4 +29,10 @@ theorem exp_two_thirds_le_two : Real.exp ((2 : ℝ) / 3) ≤ 2 := by
   norm_num at h
   exact h.le
 
+/-- A short Taylor sum bounds `exp(11/10)` from below by three. -/
+theorem three_le_exp_eleven_tenths : (3 : ℝ) ≤ Real.exp (11 / 10) := by
+  have h := Real.sum_le_exp_of_nonneg (show (0 : ℝ) ≤ 11 / 10 by norm_num) 7
+  norm_num [Finset.sum_range_succ] at h
+  exact le_trans (by norm_num) h
+
 end Hedetniemi
