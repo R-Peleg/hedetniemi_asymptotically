@@ -17,4 +17,13 @@ theorem strongProduct_adj_left {V W : Type*} {G : SimpleGraph V} {H : SimpleGrap
     {x y : V × W} (h : (strongProduct G H).Adj x y) :
     x.1 = y.1 ∨ G.Adj x.1 y.1 := h.1
 
+/-- If an edge keeps the second coordinate fixed, the first coordinates
+must be adjacent, since equality in both coordinates is forbidden. -/
+theorem strongProduct_adj_of_snd_eq {V W : Type*} {G : SimpleGraph V} {H : SimpleGraph W}
+    {x y : V × W} (h : (strongProduct G H).Adj x y) (hxy : x.2 = y.2) :
+    G.Adj x.1 y.1 := by
+  rcases h.1 with heq | hadj
+  · exact (h.2.2 (Prod.ext heq hxy)).elim
+  · exact hadj
+
 end Hedetniemi
