@@ -1648,4 +1648,17 @@ theorem lemma7_quantitative :
   obtain ⟨D, hlow, hupp, hgirth, hfrac⟩ := lemma7_deletion_conclusion G hN hind hcycles
   exact ⟨G, D, hlow, hupp, hgirth, (indepNum_induce_le G _).trans hind, hfrac⟩
 
+/-- Theorem 1: Hedetniemi's conjecture is asymptotically false, with the explicit
+constant ε = 10⁻⁹ and with every sufficiently large integer target covered. -/
+theorem theorem1 :
+    ∃ C₀ : ℕ, ∀ c ≥ C₀,
+      ∃ (W₁ W₂ : Type) (H₁ : SimpleGraph W₁) (H₂ : SimpleGraph W₂),
+        Finite W₁ ∧ Finite W₂ ∧
+        (1 + 1 / 1000000000 : ℝ) * c < (H₁.chromaticNumber.toNat : ℝ) ∧
+        (1 + 1 / 1000000000 : ℝ) * c < (H₂.chromaticNumber.toNat : ℝ) ∧
+        (tensorSimpleLeft H₁ (Graph.ofSimpleGraph H₂)).chromaticNumber ≤ c := by
+  classical
+  obtain ⟨G, D, hlow, hupp, hgirth, hind, _⟩ := lemma7_quantitative
+  exact theorem1_of_lemma7_witness (G.induce {v | v ∉ D}) hlow hupp hgirth hind
+
 end Hedetniemi
