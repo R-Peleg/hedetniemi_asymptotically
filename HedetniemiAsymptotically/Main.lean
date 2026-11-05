@@ -10,6 +10,8 @@ import HedetniemiAsymptotically.RobustColors
 import HedetniemiAsymptotically.ExponentialLift
 import HedetniemiAsymptotically.RobustError
 import HedetniemiAsymptotically.EvenNear
+import HedetniemiAsymptotically.MuMap
+import HedetniemiAsymptotically.NuMap
 import Mathlib.Logic.Equiv.Fintype
 import Mathlib.Combinatorics.SetFamily.KruskalKatona
 import Mathlib.Tactic.Ring
@@ -614,5 +616,44 @@ theorem evenNear_not_adj_of_six_le_egirth {V : Type*} {G : SimpleGraph V}
   · rcases hh with rfl | ⟨b, hvb, hbh⟩
     · exact no_triangle_of_six_le_egirth hG hva hag hgh
     · exact no_five_walk_of_six_le_egirth hG hva hag hgh hbh.symm hvb.symm
+
+/-- The first clique in Lemma 6: distinct maps `μ_r` are co-proper.
+The colors `r` start at the end of the first block, as in the paper. -/
+theorem muMap_coproper {V : Type*} {G : SimpleGraph V} (hG : 6 ≤ G.egirth)
+    (v : V) {q r s : ℕ} (hr : q ≤ r) (hs : q ≤ s) (hrs : r ≠ s) :
+    CoProper (Graph.ofSimpleGraph (strongProduct G (⊤ : SimpleGraph (Fin q))))
+      (muMap G v q r) (muMap G v q s) := by
+  classical
+  intro x y hxy heq
+  change (strongProduct G (⊤ : SimpleGraph (Fin q))).Adj x y at hxy
+  have hi := x.2.isLt
+  have hj := y.2.isLt
+  by_cases hxE : EvenNear G v x.1
+  · by_cases hyE : EvenNear G v y.1
+    · have hij : x.2.val = y.2.val := by simpa [muMap, hxE, hyE] using heq
+      exact evenNear_not_adj_of_six_le_egirth hG v hxE hyE
+        (strongProduct_adj_of_snd_eq hxy (Fin.ext hij))
+    · by_cases hyN : G.Adj v y.1
+      · simp only [muMap, ite_eq_left hxE, ite_eq_right hyE, ite_eq_left hyN] at heq
+        omega
+      · simp only [muMap, ite_eq_left hxE, ite_eq_right hyE, ite_eq_right hyN] at heq
+        omega
+  · by_cases hxN : G.Adj v x.1
+    · by_cases hyE : EvenNear G v y.1
+      · simp only [muMap, ite_eq_right hxE, ite_eq_left hxN, ite_eq_left hyE] at heq
+        omega
+      · by_cases hyN : G.Adj v y.1
+        · have hij : x.2.val = y.2.val := by
+            simp only [muMap, ite_eq_right hxE, ite_eq_left hxN, ite_eq_right hyE, ite_eq_left hyN] at heq
+            omega
+          exact no_triangle_of_six_le_egirth hG hxN
+            (strongProduct_adj_of_snd_eq hxy (Fin.ext hij)) hyN.symm
+        · exact far_not_loopedAdj_neighbor hyE hyN hxN ((loopedGraph G).symm hxy.1)
+    · by_cases hyE : EvenNear G v y.1
+      · simp only [muMap, ite_eq_right hxE, ite_eq_right hxN, ite_eq_left hyE] at heq
+        omega
+      · by_cases hyN : G.Adj v y.1
+        · exact far_not_loopedAdj_neighbor hxE hxN hyN hxy.1
+        · exact hrs (by simpa [muMap, hxE, hxN, hyE, hyN] using heq)
 
 end Hedetniemi
