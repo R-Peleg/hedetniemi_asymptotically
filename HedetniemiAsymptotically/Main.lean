@@ -1481,4 +1481,16 @@ theorem independent_set_union_measure_le {V : Type*} [Fintype V] [DecidableEq V]
     _ ≤ ∑ _S : T, a := Finset.sum_le_sum (fun S _ ↦ hprob S.val S.property)
     _ = _ := by simp [T, Fintype.card_finset_len, nsmul_eq_mul]
 
+/-- Excluding independent sets of a given size bounds the independence number. -/
+theorem indepNum_lt_of_no_independent_set {V : Type*} [Fintype V]
+    (G : SimpleGraph V) (k : ℕ)
+    (hno : ∀ S : Finset V, S.card = k → ¬ G.IsIndepSet (S : Set V)) :
+    G.indepNum < k := by
+  classical
+  obtain ⟨S, hS⟩ := G.exists_isNIndepSet_indepNum
+  by_contra h
+  have hk : k ≤ S.card := hS.card_eq.symm ▸ Nat.le_of_not_gt h
+  obtain ⟨T, hTS, hT⟩ := Finset.exists_subset_card_eq hk
+  exact hno T hT (hS.isIndepSet.mono (by exact hTS))
+
 end Hedetniemi
