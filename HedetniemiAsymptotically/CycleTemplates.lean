@@ -21,4 +21,8 @@ set_option maxRecDepth 20000 in
 set_option maxHeartbeats 0 in
 theorem card_cycleTemplates_four : (cycleTemplates 1).card = 3 := by decide
 
+set_option maxRecDepth 20000 in
+set_option maxHeartbeats 0 in
+theorem card_cycleTemplates_five : (cycleTemplates 2).card = 12 := by decide
+
 end Hedetniemi
