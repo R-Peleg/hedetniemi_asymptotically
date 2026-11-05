@@ -35,6 +35,7 @@ import Mathlib.Tactic.FieldSimp
 import Mathlib.Combinatorics.SimpleGraph.Girth
 import Mathlib.Algebra.Order.Floor.Ring
 import Mathlib.MeasureTheory.Integral.Lebesgue.Markov
+import Mathlib.MeasureTheory.Measure.Typeclasses.Probability
 
 /-! Proofs appearing in He and Wigderson, *Hedetniemi's conjecture is
 asymptotically false* (arXiv:1906.06783v3). -/
@@ -1517,5 +1518,33 @@ theorem shortCycle_markov_measure_le {V : Type*} [Fintype V] [LinearOrder V]
       apply (ENNReal.div_eq_div_iff (by norm_num) (by norm_num)
         (by norm_num) (by norm_num)).mpr
       norm_num
+
+/-- The two bad-event estimates leave a graph suitable for deletion in Lemma 7. -/
+theorem exists_graph_of_bad_event_bounds {V : Type*} [Fintype V] [LinearOrder V]
+    (μ : Measure (SimpleGraph V)) [IsProbabilityMeasure μ]
+    (hcycles : μ {G | 230000 < ∑ m ∈ Finset.range 3, (presentCyclePlacements G m).card} ≤ 1 / 2)
+    (hind : μ {G | ∃ S : Finset V, S.card = 570000 ∧ G.IsIndepSet (S : Set V)} < 1 / 4) :
+    ∃ G : SimpleGraph V, G.indepNum ≤ 570000 ∧
+      ∑ m ∈ Finset.range 3, (presentCyclePlacements G m).card ≤ 230000 := by
+  classical
+  let A := {G : SimpleGraph V | 230000 < ∑ m ∈ Finset.range 3, (presentCyclePlacements G m).card}
+  let B := {G : SimpleGraph V | ∃ S : Finset V, S.card = 570000 ∧ G.IsIndepSet (S : Set V)}
+  have hsum : μ A + μ B < 1 := by
+    have h := ENNReal.add_lt_add_of_le_of_lt (measure_ne_top μ A) hcycles hind
+    have hnum : (1 / 2 : ℝ≥0∞) + 1 / 4 < 1 := by
+      apply (ENNReal.toReal_lt_toReal (by simp) (by simp)).mp
+      norm_num [ENNReal.toReal_add]
+    exact h.trans hnum
+  have hbad : μ (A ∪ B) < 1 := (measure_union_le A B).trans_lt hsum
+  have hex : ∃ G, G ∉ A ∪ B := by
+    by_contra! h
+    have hU : A ∪ B = Set.univ := Set.eq_univ_of_forall h
+    simp only [hU, measure_univ, lt_self_iff_false] at hbad
+  obtain ⟨G, hG⟩ := hex
+  have hA : G ∉ A := fun h ↦ hG (Or.inl h)
+  have hB : G ∉ B := fun h ↦ hG (Or.inr h)
+  refine ⟨G, (indepNum_lt_of_no_independent_set G 570000 ?_).le, Nat.le_of_not_gt hA⟩
+  intro S hS hindS
+  exact hB ⟨S, hS, hindS⟩
 
 end Hedetniemi
