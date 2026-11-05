@@ -1388,4 +1388,57 @@ theorem construction_rounding_large (δ : ℝ) (hδ : 0 ≤ δ) (hδsmall : δ �
   have hQ : (Q : ℝ) ≤ q := by dsimp [a] at hdiv; linarith
   exact ⟨q, c', hcbig, by exact_mod_cast hQ, heq, hle, hnear, hq⟩
 
+/-- Theorem 1 follows from the quantitative graph witness constructed in Lemma 7. -/
+theorem theorem1_of_lemma7_witness {V : Type} [Fintype V] [DecidableEq V]
+    (G : SimpleGraph V) (hN : 1770000 ≤ Fintype.card V)
+    (hNupper : Fintype.card V ≤ 2000000) (hgirth : 6 ≤ G.egirth)
+    (hind : G.indepNum ≤ 570000) :
+    ∃ C₀ : ℕ, ∀ c ≥ C₀,
+      ∃ (W₁ W₂ : Type) (H₁ : SimpleGraph W₁) (H₂ : SimpleGraph W₂),
+        Finite W₁ ∧ Finite W₂ ∧
+        (1 + 1 / 1000000000 : ℝ) * c < (H₁.chromaticNumber.toNat : ℝ) ∧
+        (1 + 1 / 1000000000 : ℝ) * c < (H₂.chromaticNumber.toNat : ℝ) ∧
+        (tensorSimpleLeft H₁ (Graph.ofSimpleGraph H₂)).chromaticNumber ≤ c := by
+  classical
+  let n := Fintype.card V
+  let δ := constructionDelta n
+  have hn : 4 ≤ n := by dsimp [n]; omega
+  have hδ : 0 < δ := constructionDelta_pos (by omega)
+  have hδsmall : δ ≤ 1 / 324 := constructionDelta_le hn
+  have hδlower : 1 / 162000000 ≤ δ := constructionDelta_lower_bound (by omega) hNupper
+  let Q := ⌈9 * (n : ℝ) ^ 3 / δ⌉₊
+  obtain ⟨C₀, hC₀⟩ := construction_rounding_large δ hδ.le hδsmall Q
+  refine ⟨C₀, ?_⟩
+  intro c hc
+  obtain ⟨q, c', hcbig, hq, hc'eq, hc'le, hc'near, hqnear⟩ := hC₀ c hc
+  obtain ⟨hgainExp, hgainBase⟩ := construction_rounded_gain δ hδlower hδsmall hcbig hc'near hqnear
+  let H := strongProduct G (⊤ : SimpleGraph (Fin q))
+  have hbase : (31 / 10 : ℝ) * q ≤ (H.chromaticNumber.toNat : ℝ) :=
+    lemma7_strongProduct_chromatic_bound G hN hind q
+  have hbaseGain : (1 + 1 / 1000000000 : ℝ) * c < (H.chromaticNumber.toNat : ℝ) :=
+    hgainBase.trans_le hbase
+  have hc'base : (c' : ℝ) < (H.chromaticNumber.toNat : ℝ) := by
+    have hcle : (c' : ℝ) ≤ c := by exact_mod_cast hc'le
+    nlinarith [show (0 : ℝ) ≤ c from Nat.cast_nonneg c]
+  have hno : IsEmpty ((Graph.ofSimpleGraph H).Coloring (Fin c')) := by
+    refine ⟨fun χ ↦ ?_⟩
+    have hcol : H.Colorable c' := ⟨SimpleGraph.Coloring.mk χ.val (fun h ↦ χ.property h)⟩
+    have hfin : H.chromaticNumber ≠ ⊤ :=
+      (lt_of_le_of_lt H.chromaticNumber_le_card (ENat.natCast_lt_top _)).ne
+    have hle := SimpleGraph.chromaticNumber_le_iff_colorable.mpr hcol
+    have hleNat : H.chromaticNumber.toNat ≤ c' := by
+      exact_mod_cast (show (H.chromaticNumber.toNat : ℕ∞) ≤ c' by
+        simpa only [ENat.natCast_toNat hfin] using hle)
+    have hleR : (H.chromaticNumber.toNat : ℝ) ≤ c' := by exact_mod_cast hleNat
+    linarith
+  have hloop : ∀ f, ¬ (exponentialGraph (Graph.ofSimpleGraph H) (Fin c')).Adj f f :=
+    (exponentialGraph_loopless_iff _).mpr hno
+  let E := (exponentialGraph (Graph.ofSimpleGraph H) (Fin c')).toSimpleGraph hloop
+  have hexp : (1 + δ) * (c' : ℝ) < (E.chromaticNumber.toNat : ℝ) := by
+    subst c'
+    exact lemma6_rounded_chromatic_bound hgirth hn q hq hloop
+  refine ⟨V × Fin q, (V × Fin q → Fin c'), H, E, inferInstance, inferInstance,
+    hbaseGain, hgainExp.trans hexp, ?_⟩
+  exact (evaluation_chromaticNumber_le H c').trans (by exact_mod_cast hc'le)
+
 end Hedetniemi
