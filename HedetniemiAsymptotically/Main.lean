@@ -1222,4 +1222,32 @@ theorem cycle_has_cyclePlacement {V : Type*} [LinearOrder V] {G : SimpleGraph V}
         simp [this]
       simpa only [f, hs, hlast, w.getVert_length, w.getVert_zero] using hadj
 
+/-- Removing a set that hits every cycle placement of lengths three through five
+leaves a graph of extended girth at least six. -/
+theorem six_le_egirth_induce_of_hit_cyclePlacements {V : Type*} [LinearOrder V]
+    (G : SimpleGraph V) (D : Finset V)
+    (hD : ∀ m ≤ 2, ∀ P : CyclePlacement V m,
+      (∀ e ∈ placeCycleEdges P.1.val P.1.property P.2.val, e ∈ G.edgeSet) →
+        ∃ x ∈ P.1.val, x ∈ D) :
+    6 ≤ (G.induce {v | v ∉ D}).egirth := by
+  rw [SimpleGraph.le_egirth]
+  intro v w hc
+  suffices 6 ≤ w.length by exact_mod_cast this
+  by_contra hlen
+  have hshort : w.length < 6 := by omega
+  have hthree := hc.three_le_length
+  let φ : G.induce {v | v ∉ D} →g G :=
+    { toFun := Subtype.val, map_rel' := fun h ↦ h }
+  have hc' : (w.map φ).IsCycle := hc.map Subtype.val_injective
+  obtain ⟨P, hverts, hedges⟩ := cycle_has_cyclePlacement (w.map φ) hc'
+    (m := w.length - 3) (by simp only [SimpleGraph.Walk.length_map]; omega)
+  obtain ⟨x, hx, hxD⟩ := hD (w.length - 3) (by omega) P hedges
+  have hxw := hverts x hx
+  rw [SimpleGraph.Walk.support_map] at hxw
+  obtain ⟨y, _, hy⟩ := List.mem_map.mp hxw
+  apply y.property
+  change φ y ∈ D
+  rw [hy]
+  exact hxD
+
 end Hedetniemi
