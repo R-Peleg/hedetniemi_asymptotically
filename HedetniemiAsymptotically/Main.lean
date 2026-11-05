@@ -1051,4 +1051,38 @@ theorem real_lt_chromaticNumber_of_no_coloring {W : Type*} [Fintype W]
     exact_mod_cast Nat.succ_le_of_lt hlt
   exact (Nat.lt_floor_add_one x).trans_le (by simpa using hreal)
 
+/-- Lemma 6 in chromatic-number form, with explicit rounding. Looplessness
+is recorded explicitly because the paper only uses chromatic numbers of
+simple graphs; it is supplied by the base graph's chromatic lower bound
+in the proof of Theorem 1. -/
+theorem lemma6_rounded_chromatic_bound {V : Type*} [Fintype V] [DecidableEq V]
+    {G : SimpleGraph V} (hG : 6 ≤ G.egirth) (hn : 4 ≤ Fintype.card V)
+    (q : ℕ) (hq : Nat.ceil (9 * (Fintype.card V : ℝ) ^ 3 /
+      constructionDelta (Fintype.card V)) ≤ q)
+    (hloop :
+      let δ := constructionDelta (Fintype.card V)
+      let c := Nat.ceil ((3 + 10 * δ) * (q : ℝ))
+      ∀ f, ¬ (exponentialGraph (Graph.ofSimpleGraph
+        (strongProduct G (⊤ : SimpleGraph (Fin q)))) (Fin c)).Adj f f) :
+    let δ := constructionDelta (Fintype.card V)
+    let c := Nat.ceil ((3 + 10 * δ) * (q : ℝ))
+    (1 + δ) * (c : ℝ) < (((exponentialGraph (Graph.ofSimpleGraph
+      (strongProduct G (⊤ : SimpleGraph (Fin q)))) (Fin c)).toSimpleGraph hloop).chromaticNumber.toNat : ℝ) := by
+  let n := Fintype.card V
+  let δ := constructionDelta n
+  let c := Nat.ceil ((3 + 10 * δ) * (q : ℝ))
+  let t := Nat.floor (δ * (c : ℝ))
+  have hno : IsEmpty ((exponentialGraph (Graph.ofSimpleGraph
+      (strongProduct G (⊤ : SimpleGraph (Fin q)))) (Fin c)).Coloring (Fin (c + t))) :=
+    lemma6_rounded_no_coloring hG hn q hq
+  have hδ : 0 ≤ δ := (constructionDelta_pos (show 0 < n by dsimp [n]; omega)).le
+  have hf : Nat.floor ((1 + δ) * (c : ℝ)) = c + t := by
+    rw [show (1 + δ) * (c : ℝ) = δ * c + c by ring,
+      Nat.floor_add_natCast (mul_nonneg hδ (Nat.cast_nonneg c))]
+    change t + c = c + t
+    omega
+  apply real_lt_chromaticNumber_of_no_coloring
+  rw [hf]
+  exact hno
+
 end Hedetniemi
