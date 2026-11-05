@@ -7,9 +7,13 @@ import HedetniemiAsymptotically.VertexColorFiber
 import HedetniemiAsymptotically.TriangleFree
 import HedetniemiAsymptotically.AvoidingLargeFibers
 import HedetniemiAsymptotically.RobustColors
+import HedetniemiAsymptotically.ExponentialLift
 import Mathlib.Logic.Equiv.Fintype
 import Mathlib.Combinatorics.SetFamily.KruskalKatona
 import Mathlib.Tactic.Ring
+import Mathlib.Analysis.Convex.SpecificFunctions.Basic
+import Mathlib.Tactic.Linarith
+import Mathlib.Tactic.FieldSimp
 
 /-! Proofs appearing in He and Wigderson, *Hedetniemi's conjecture is
 asymptotically false* (arXiv:1906.06783v3). -/
@@ -376,5 +380,27 @@ theorem card_robustColors_ge_excluded {V C D : Type*} [Fintype V] [Fintype C]
               (Nat.lt_of_not_ge (fun h ↦ hb ((mem_allowedColors χ v b).mpr h)))))
       _ ≤ _ := Finset.card_union_le _ _
   omega
+
+/-- A strict logarithmic chord estimate used in the convexity argument of
+Lemma 5. The endpoint `r ≤ 1/2` allows the coefficient to be bounded by two. -/
+theorem log_factor_gt {r a : ℝ} (hr : 0 < r) (hrhalf : r ≤ 1 / 2)
+    (hra : r < a) (ha : a < 1) :
+    2 * (1 - a) * Real.log r < Real.log a := by
+  have hr1 : r < 1 := by linarith
+  have hden : 0 < 1 - r := by linarith
+  have hu : 0 < (1 - a) / (1 - r) := div_pos (by linarith) hden
+  have hv : 0 < (a - r) / (1 - r) := div_pos (by linarith) hden
+  have huv : (1 - a) / (1 - r) + (a - r) / (1 - r) = 1 := by
+    field_simp
+    ring
+  have hcombo : (1 - a) / (1 - r) * r + (a - r) / (1 - r) * 1 = a := by
+    field_simp
+    ring
+  have hlog := strictConcaveOn_log_Ioi.2 hr (by norm_num) hr1.ne hu hv huv
+  simp only [smul_eq_mul, Real.log_one, mul_zero, add_zero, hcombo] at hlog
+  have hcoef : (1 - a) / (1 - r) ≤ 2 * (1 - a) := by
+    apply (div_le_iff₀ hden).mpr
+    nlinarith [mul_nonneg (show 0 ≤ 1 - a by linarith) (show 0 ≤ 1 - 2 * r by linarith)]
+  exact (mul_le_mul_of_nonpos_right hcoef (Real.log_nonpos hr.le hr1.le)).trans_lt hlog
 
 end Hedetniemi
