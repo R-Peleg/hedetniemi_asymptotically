@@ -71,4 +71,30 @@ theorem card_maps_with_images {V C : Type*} [Fintype V] [Fintype C]
   simp only [mem_filter, mem_univ, true_and]
   exact and_iff_right_of_imp (fun h ↦ h ▸ hs)
 
+/-- For uniform set families, comparing the numbers of images also compares
+the numbers of maps having those images. -/
+theorem card_maps_with_images_le {V C : Type*} [Fintype V] [Fintype C]
+    [DecidableEq V] [DecidableEq C] {A B : Finset (Finset C)} {k : ℕ}
+    (hA : ∀ s ∈ A, s.card = k) (hB : ∀ s ∈ B, s.card = k)
+    (hcard : A.card ≤ B.card) :
+    (univ.filter (fun f : V → C ↦ univ.image f ∈ A)).card ≤
+      (univ.filter (fun f : V → C ↦ univ.image f ∈ B)).card := by
+  classical
+  by_cases hBempty : B = ∅
+  · have hAempty : A = ∅ := card_eq_zero.mp (by simpa [hBempty] using hcard)
+    simp [hAempty, hBempty]
+  obtain ⟨t, ht⟩ := nonempty_iff_ne_empty.mpr hBempty
+  have hcount (F : Finset (Finset C)) (hF : ∀ s ∈ F, s.card = k) :
+      (univ.filter (fun f : V → C ↦ univ.image f ∈ F)).card =
+        F.card * (univ.filter (fun f : V → C ↦ univ.image f = t)).card := by
+    rw [card_maps_with_images]
+    calc
+      _ = ∑ _s ∈ F, (univ.filter (fun f : V → C ↦ univ.image f = t)).card := by
+        apply sum_congr rfl
+        intro s hs
+        exact card_maps_with_image_eq s t ((hF s hs).trans (hB t ht).symm)
+      _ = _ := by simp
+  rw [hcount A hA, hcount B hB]
+  exact Nat.mul_le_mul_right _ hcard
+
 end Hedetniemi
