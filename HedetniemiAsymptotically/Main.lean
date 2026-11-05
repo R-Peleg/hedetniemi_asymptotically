@@ -18,6 +18,7 @@ import HedetniemiAsymptotically.FiniteMuMap
 import HedetniemiAsymptotically.FiniteNuMap
 import HedetniemiAsymptotically.Recoloring
 import HedetniemiAsymptotically.ConstructionDelta
+import HedetniemiAsymptotically.FractionalChromaticLowerBound
 import Mathlib.Logic.Equiv.Fintype
 import Mathlib.Combinatorics.SetFamily.KruskalKatona
 import Mathlib.Tactic.Ring
@@ -1111,5 +1112,13 @@ theorem strongProduct_indepSet_fst_injective {V W : Type*} (G : SimpleGraph V)
   apply Or.inr
   change x.2 ≠ y.2
   exact fun hsnd ↦ hne (Prod.ext hfst hsnd)
+
+/-- The explicit short-cycle expectation budget used in Lemma 7, for
+`n=2,000,000` and `p=8·10⁻⁶=1/125000`. -/
+theorem lemma7_cycle_expectation_budget :
+    (2000000 : ℝ) ^ 3 * (1 / 125000 : ℝ) ^ 3 / 6 +
+      (2000000 : ℝ) ^ 4 * (1 / 125000 : ℝ) ^ 4 / 8 +
+      (2000000 : ℝ) ^ 5 * (1 / 125000 : ℝ) ^ 5 / 10 ≤ 115000 := by
+  norm_num
 
 end Hedetniemi
