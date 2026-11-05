@@ -3,6 +3,7 @@ import HedetniemiAsymptotically.SuitedColoring
 import HedetniemiAsymptotically.RobustColor
 import HedetniemiAsymptotically.IndependentSet
 import Mathlib.Logic.Equiv.Fintype
+import Mathlib.Combinatorics.SetFamily.KruskalKatona
 
 /-! Proofs appearing in He and Wigderson, *Hedetniemi's conjecture is
 asymptotically false* (arXiv:1906.06783v3). -/
@@ -24,6 +25,27 @@ theorem independent_maps_images_intersect {V C : Type*} [Nonempty V]
     apply hI hf hg hfg
     intro v w _ heq
     exact h ⟨v, w, heq⟩
+
+/-- The Erdős–Ko–Rado step in Lemma 4, applied to one image-size layer. -/
+theorem independent_image_layer_card_le {V : Type*} [Fintype V] [Nonempty V]
+    {c k : ℕ} {G : Graph V} (I : Finset (V → Fin c))
+    (hI : (exponentialGraph G (Fin c)).IsIndependent (I : Set (V → Fin c)))
+    (hk : k ≤ c / 2) :
+    ((I.image (fun f ↦ Finset.univ.image f)).filter (fun s ↦ s.card = k)).card ≤
+      (c - 1).choose (k - 1) := by
+  classical
+  apply Finset.erdos_ko_rado _ _ hk
+  · intro s hs t ht
+    obtain ⟨hs, _⟩ := Finset.mem_filter.mp hs
+    obtain ⟨ht, _⟩ := Finset.mem_filter.mp ht
+    obtain ⟨f, hf, rfl⟩ := Finset.mem_image.mp hs
+    obtain ⟨g, hg, rfl⟩ := Finset.mem_image.mp ht
+    obtain ⟨v, w, hvw⟩ := independent_maps_images_intersect hI hf hg
+    exact Finset.not_disjoint_iff.mpr ⟨f v,
+      Finset.mem_image.mpr ⟨v, Finset.mem_univ _, rfl⟩,
+      Finset.mem_image.mpr ⟨w, Finset.mem_univ _, hvw.symm⟩⟩
+  · intro s hs
+    exact (Finset.mem_filter.mp hs).2
 
 /-- Lemma 3. A coloring with finitely many primary colors can be made suited
 by permuting its colors. Taking `C = Fin c` and `D = Fin t` gives the paper's
