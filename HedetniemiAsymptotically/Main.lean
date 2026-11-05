@@ -16,6 +16,7 @@ import HedetniemiAsymptotically.RestrictedColoring
 import HedetniemiAsymptotically.FiniteMap
 import HedetniemiAsymptotically.FiniteMuMap
 import HedetniemiAsymptotically.FiniteNuMap
+import HedetniemiAsymptotically.Recoloring
 import Mathlib.Logic.Equiv.Fintype
 import Mathlib.Combinatorics.SetFamily.KruskalKatona
 import Mathlib.Tactic.Ring
@@ -922,5 +923,19 @@ theorem lemma6_discrete_uncolorability {V : Type*} [Fintype V] [DecidableEq V]
     exists_self_colored_mu_maps hG χ hχ v hq hcq σ
   exact lemma6_configuration_impossible χ hχ v hq r σ r.injective σ.injective
     hrdisjoint hrhigh (fun i ↦ (hσ i).1) (fun i ↦ (hσ i).2) hrcolor
+
+/-- The same discrete statement using the standard palette `Fin (c+t)`. -/
+theorem lemma6_discrete_no_coloring {V : Type*} [Fintype V] [DecidableEq V]
+    {G : SimpleGraph V} {q c t : ℕ} (hG : 6 ≤ G.egirth)
+    (hn : 4 ≤ Fintype.card V)
+    (hc : 16 * (Fintype.card V * t + Fintype.card V ^ 3) ≤ c)
+    (hcq : 3 * q + 3 * t + 2 ≤ c)
+    (herror : ((2 * q + t + 1 : ℕ) : ℝ) ≤
+      (c : ℝ) - robustError (Fintype.card V) c t) :
+    IsEmpty ((exponentialGraph (Graph.ofSimpleGraph
+      (strongProduct G (⊤ : SimpleGraph (Fin q)))) (Fin c)).Coloring (Fin (c + t))) := by
+  refine ⟨fun χ ↦ ?_⟩
+  exact (lemma6_discrete_uncolorability hG hn hc hcq herror).false
+    (recolor finSumFinEquiv.symm χ)
 
 end Hedetniemi
