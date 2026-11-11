@@ -216,24 +216,24 @@ theorem large_vertexColorFiber_has_unique_support {V C D : Type*}
 by permuting its colors. Taking `C = Fin c` and `D = Fin t` gives the paper's
 `(c+t)`-coloring statement. -/
 theorem exists_suited_coloring {V C D : Type*} [Finite C] (G : Graph V)
-    (χ : (exponentialGraph G C).Coloring (C ⊕ D)) :
-    ∃ χ' : (exponentialGraph G C).Coloring (C ⊕ D), IsSuited χ' := by
-  classical
-  have hinj : Function.Injective (fun b : C ↦ χ.val (fun _ ↦ b)) := by
+    (ψ : (exponentialGraph G C).Coloring (C ⊕ D)) :
+    ∃ ψ' : (exponentialGraph G C).Coloring (C ⊕ D), IsSuited ψ' := by
+  let to_suited : C → C ⊕ D := fun b : C ↦ ψ.val (fun _ ↦ b)
+  have hinj : Function.Injective to_suited := by
     intro b d heq
     by_contra hne
-    exact χ.property (fun {_ _} _ ↦ hne) heq
+    exact ψ.property (fun {_ _} _ ↦ hne) heq
   obtain ⟨σ, hσ⟩ := Equiv.Perm.exists_extending_pair
-    (fun b : C ↦ χ.val (fun _ ↦ b)) Sum.inl hinj Sum.inl_injective
-  let χ' : (exponentialGraph G C).Coloring (C ⊕ D) :=
-    ⟨fun f ↦ σ (χ.val f), fun {_ _} h heq ↦ χ.property h (σ.injective heq)⟩
-  refine ⟨χ', ?_⟩
+    to_suited Sum.inl hinj Sum.inl_injective
+  let ψ' : (exponentialGraph G C).Coloring (C ⊕ D) :=
+    ⟨fun φ ↦ σ (ψ.val φ), fun {_ _} h heq ↦ ψ.property h (σ.injective heq)⟩
+  refine ⟨ψ', ?_⟩
   intro f b hfb
   by_contra hb
   have hadj : (exponentialGraph G C).Adj f (fun _ ↦ b) := by
     intro v w _ heq
     exact hb ⟨v, heq⟩
-  apply χ'.property hadj
+  apply ψ'.property hadj
   exact hfb.trans (hσ b).symm
 
 /-- The clique step in Lemma 5: if each vertex in a set supports a map with
