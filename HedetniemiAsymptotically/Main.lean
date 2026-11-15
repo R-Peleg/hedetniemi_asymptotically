@@ -645,37 +645,38 @@ theorem muMap_coproper {V : Type*} {G : SimpleGraph V} (hG : 6 ≤ G.egirth)
     CoProper (Graph.ofSimpleGraph (strongProduct G (⊤ : SimpleGraph (Fin q))))
       (muMap G v q r) (muMap G v q s) := by
   classical
-  intro x y hxy heq
+  intro x y hxy
   change (strongProduct G (⊤ : SimpleGraph (Fin q))).Adj x y at hxy
   have hi := x.2.isLt
   have hj := y.2.isLt
+  simp only [muMap]
   by_cases hxE : EvenNear G v x.1
-  · by_cases hyE : EvenNear G v y.1
-    · have hij : x.2.val = y.2.val := by simpa [muMap, hxE, hyE] using heq
-      exact evenNear_not_adj_of_six_le_egirth hG v hxE hyE
-        (strongProduct_adj_of_snd_eq hxy (Fin.ext hij))
-    · by_cases hyN : G.Adj v y.1
-      · simp only [muMap, ite_eq_left hxE, ite_eq_right hyE, ite_eq_left hyN] at heq
+  · simp only [ite_eq_left hxE]
+    by_cases hyE : EvenNear G v y.1
+    · simp only [ite_eq_left hyE]
+      exact fun h => evenNear_not_adj_of_six_le_egirth hG v hxE hyE
+        (strongProduct_adj_of_snd_eq hxy (Fin.ext h))
+    · simp only [ite_eq_right hyE]
+      split_ifs <;> omega
+  · simp only [ite_eq_right hxE]
+    by_cases hxN : G.Adj v x.1
+    · simp only [ite_eq_left hxN]
+      by_cases hyE : EvenNear G v y.1
+      · simp only [ite_eq_left hyE]
         omega
-      · simp only [muMap, ite_eq_left hxE, ite_eq_right hyE, ite_eq_right hyN] at heq
+      · simp only [ite_eq_right hyE]
+        have hyN : G.Adj v y.1 := not_not.mp
+          fun h => far_not_loopedAdj_neighbor hyE h hxN ((loopedGraph G).symm hxy.1)
+        simp only [ite_eq_left hyN, ne_eq, add_right_inj]
+        exact fun h => no_triangle_of_six_le_egirth hG hxN
+          (strongProduct_adj_of_snd_eq hxy (Fin.ext h)) hyN.symm
+    · simp only [ite_eq_right hxN]
+      by_cases hyE : EvenNear G v y.1
+      · simp only [ite_eq_left hyE]
         omega
-  · by_cases hxN : G.Adj v x.1
-    · by_cases hyE : EvenNear G v y.1
-      · simp only [muMap, ite_eq_right hxE, ite_eq_left hxN, ite_eq_left hyE] at heq
-        omega
-      · by_cases hyN : G.Adj v y.1
-        · have hij : x.2.val = y.2.val := by
-            simp only [muMap, ite_eq_right hxE, ite_eq_left hxN, ite_eq_right hyE, ite_eq_left hyN] at heq
-            omega
-          exact no_triangle_of_six_le_egirth hG hxN
-            (strongProduct_adj_of_snd_eq hxy (Fin.ext hij)) hyN.symm
-        · exact far_not_loopedAdj_neighbor hyE hyN hxN ((loopedGraph G).symm hxy.1)
-    · by_cases hyE : EvenNear G v y.1
-      · simp only [muMap, ite_eq_right hxE, ite_eq_right hxN, ite_eq_left hyE] at heq
-        omega
-      · by_cases hyN : G.Adj v y.1
-        · exact far_not_loopedAdj_neighbor hxE hxN hyN hxy.1
-        · exact hrs (by simpa [muMap, hxE, hxN, hyE, hyN] using heq)
+      · simp only [ite_eq_right hyE]
+        have hyN : ¬ G.Adj v y.1 := fun h => far_not_loopedAdj_neighbor hxE hxN h hxy.1
+        simpa [hyN] using hrs
 
 /-- The second clique of Lemma 6 consists of `ν` maps with disjoint pairs
 of image colors. This fact does not require a girth assumption. -/
