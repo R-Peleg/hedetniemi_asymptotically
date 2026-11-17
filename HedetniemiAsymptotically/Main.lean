@@ -580,64 +580,6 @@ theorem exists_many_robust_colors {V : Type*} [Fintype V] [DecidableEq V]
     (robustError_pos hn0 hc0) (robustError_le_half hc)
     (robustError_pow_four (Fintype.card V) c t)
 
-/-- A girth bound of six excludes triangles, including closed three-step
-walks presented without distinctness assumptions. -/
-theorem no_triangle_of_six_le_egirth {V : Type*} {G : SimpleGraph V}
-    (hG : 6 ≤ G.egirth) {a b c : V}
-    (hab : G.Adj a b) (hbc : G.Adj b c) (hca : G.Adj c a) : False := by
-  let w : G.Walk a a := .cons hab (.cons hbc (.cons hca .nil))
-  have hw : w.IsCycle := by
-    apply SimpleGraph.Walk.isCycle_iff_isPath_tail_and_le_length.mpr
-    constructor
-    · simp [w, SimpleGraph.Walk.isPath_def, hbc.ne, hab.ne', hca.ne]
-    · simp [w]
-  have hbound := hG.trans hw.egirth_le_length
-  norm_num [w] at hbound
-
-/-- A girth bound of six excludes every closed five-step walk. If vertices
-repeat, such a walk already contains a triangle; otherwise it is a cycle. -/
-theorem no_five_walk_of_six_le_egirth {V : Type*} {G : SimpleGraph V}
-    (hG : 6 ≤ G.egirth) {a b c d e : V}
-    (hab : G.Adj a b) (hbc : G.Adj b c) (hcd : G.Adj c d)
-    (hde : G.Adj d e) (hea : G.Adj e a) : False := by
-  have hac : a ≠ c := by
-    intro h; subst c
-    exact no_triangle_of_six_le_egirth hG hcd hde hea
-  have had : a ≠ d := by
-    intro h; subst d
-    exact no_triangle_of_six_le_egirth hG hab hbc hcd
-  have hbd : b ≠ d := by
-    intro h; subst d
-    exact no_triangle_of_six_le_egirth hG hab hde hea
-  have hbe : b ≠ e := by
-    intro h; subst e
-    exact no_triangle_of_six_le_egirth hG hbc hcd hde
-  have hce : c ≠ e := by
-    intro h; subst e
-    exact no_triangle_of_six_le_egirth hG hab hbc hea
-  let w : G.Walk a a := .cons hab (.cons hbc (.cons hcd (.cons hde (.cons hea .nil))))
-  have hw : w.IsCycle := by
-    apply SimpleGraph.Walk.isCycle_iff_isPath_tail_and_le_length.mpr
-    constructor
-    · simp [w, SimpleGraph.Walk.isPath_def, hbc.ne, hcd.ne, hde.ne, hea.ne,
-        hab.ne', hbd, hbe, hce, hac.symm, had.symm]
-    · simp [w]
-  have hbound := hG.trans hw.egirth_le_length
-  norm_num [w] at hbound
-
-/-- The even part of a radius-two ball is independent when the girth is at least six. -/
-theorem evenNear_not_adj_of_six_le_egirth {V : Type*} {G : SimpleGraph V}
-    (hG : 6 ≤ G.egirth) (v : V) {g h : V}
-    (hg : EvenNear G v g) (hh : EvenNear G v h) : ¬ G.Adj g h := by
-  intro hgh
-  rcases hg with rfl | ⟨a, hva, hag⟩
-  · rcases hh with rfl | ⟨b, hvb, hbh⟩
-    · exact hgh.ne rfl
-    · exact no_triangle_of_six_le_egirth hG hvb hbh hgh.symm
-  · rcases hh with rfl | ⟨b, hvb, hbh⟩
-    · exact no_triangle_of_six_le_egirth hG hva hag hgh
-    · exact no_five_walk_of_six_le_egirth hG hva hag hgh hbh.symm hvb.symm
-
 /-- The first clique in Lemma 6: distinct maps `μ_r` are co-proper.
 The colors `r` start at the end of the first block, as in the paper. -/
 theorem muMap_coproper {V : Type*} {G : SimpleGraph V} (hG : 6 ≤ G.egirth)
@@ -649,34 +591,47 @@ theorem muMap_coproper {V : Type*} {G : SimpleGraph V} (hG : 6 ≤ G.egirth)
   change (strongProduct G (⊤ : SimpleGraph (Fin q))).Adj x y at hxy
   have hi := x.2.isLt
   have hj := y.2.isLt
-  simp only [muMap]
+  -- simp only [muMap]
   by_cases hxE : EvenNear G v x.1
-  · simp only [ite_eq_left hxE]
-    by_cases hyE : EvenNear G v y.1
-    · simp only [ite_eq_left hyE]
+  · by_cases hyE : EvenNear G v y.1
+    · -- x and y both distnace 0 or 2 from v
+      simp only [muMap_of_EvenNear hxE, muMap_of_EvenNear hyE]
       exact fun h => evenNear_not_adj_of_six_le_egirth hG v hxE hyE
         (strongProduct_adj_of_snd_eq hxy (Fin.ext h))
-    · simp only [ite_eq_right hyE]
-      split_ifs <;> omega
-  · simp only [ite_eq_right hxE]
-    by_cases hxN : G.Adj v x.1
-    · simp only [ite_eq_left hxN]
-      by_cases hyE : EvenNear G v y.1
-      · simp only [ite_eq_left hyE]
+    · -- x is distnace 0 or 2, y is not
+      simp only [muMap_of_EvenNear hxE]
+      have := muMap_of_not_EvenNear_ge hs hyE
+      omega
+  · by_cases hxN : G.Adj v x.1
+    · by_cases hyE : EvenNear G v y.1
+      · -- x is adjacent to v, y is distance 0 or 2
+        simp only [muMap_of_Adj hxE hxN, muMap_of_EvenNear hyE]
         omega
-      · simp only [ite_eq_right hyE]
-        have hyN : G.Adj v y.1 := not_not.mp
-          fun h => far_not_loopedAdj_neighbor hyE h hxN ((loopedGraph G).symm hxy.1)
-        simp only [ite_eq_left hyN, ne_eq, add_right_inj]
-        exact fun h => no_triangle_of_six_le_egirth hG hxN
-          (strongProduct_adj_of_snd_eq hxy (Fin.ext h)) hyN.symm
-    · simp only [ite_eq_right hxN]
-      by_cases hyE : EvenNear G v y.1
-      · simp only [ite_eq_left hyE]
+      · -- x is adjacent to v, y is not distance 0 or 2
+        -- So, x and y are not neighbors in G
+        have hNotAdj : ¬ G.Adj x.1 y.1 :=
+          fun h ↦ hyE (evenNear_of_adj_adj hxN h)
+        -- Which means they are the same in G
+        have hSameV : x.1 = y.1 := (strongProduct_adj_left hxy).resolve_right hNotAdj
+        have hyN : G.Adj v y.1 := hSameV ▸ hxN
+        -- And different i, or it would be the same vertex in the strong mult
+        have hDifferentI : x.2 ≠ y.2 := fun h ↦ hxy.ne (Prod.ext hSameV h)
+        -- Now we can resolve
+        simp only [muMap_of_Adj hxE hxN, muMap_of_Adj hyE hyN]
         omega
-      · simp only [ite_eq_right hyE]
-        have hyN : ¬ G.Adj v y.1 := fun h => far_not_loopedAdj_neighbor hxE hxN h hxy.1
-        simpa [hyN] using hrs
+    · by_cases hyE : EvenNear G v y.1
+      · -- x is far from v, y is distance 0 or 2
+        simp only [muMap_of_far hxE hxN, muMap_of_EvenNear hyE]
+        omega
+      . -- x is far from v, y is not distance 0 or 2
+        -- we know that y is far from v
+        have hyN : ¬ G.Adj v y.1 :=
+          fun h ↦
+            (strongProduct_adj_left hxy).elim
+              (fun h' ↦ hxN (h' ▸ h))
+              (fun h' ↦ hxE (evenNear_of_adj_adj h h'.symm))
+        simp only [muMap_of_far hxE hxN, muMap_of_far hyE hyN]
+        exact hrs
 
 /-- The second clique of Lemma 6 consists of `ν` maps with disjoint pairs
 of image colors. This fact does not require a girth assumption. -/

@@ -1,4 +1,5 @@
 import HedetniemiAsymptotically.LoopedGraph
+import HedetniemiAsymptotically.HighGirth
 
 namespace Hedetniemi
 
@@ -34,5 +35,19 @@ theorem far_not_loopedAdj_closed {V : Type*} {G : SimpleGraph V} {v x y : V}
     · exact hxe (Or.inl hxy)
     · exact hxn hxy.symm
   · exact far_not_loopedAdj_neighbor hxe hxn hy
+
+
+/-- The even part of a radius-two ball is independent when the girth is at least six. -/
+theorem evenNear_not_adj_of_six_le_egirth {V : Type*} {G : SimpleGraph V}
+    (hG : 6 ≤ G.egirth) (v : V) {g h : V}
+    (hg : EvenNear G v g) (hh : EvenNear G v h) : ¬ G.Adj g h := by
+  intro hgh
+  rcases hg with rfl | ⟨a, hva, hag⟩
+  · rcases hh with rfl | ⟨b, hvb, hbh⟩
+    · exact hgh.ne rfl
+    · exact no_triangle_of_six_le_egirth hG hvb hbh hgh.symm
+  · rcases hh with rfl | ⟨b, hvb, hbh⟩
+    · exact no_triangle_of_six_le_egirth hG hva hag hgh
+    · exact no_five_walk_of_six_le_egirth hG hva hag hgh hbh.symm hvb.symm
 
 end Hedetniemi
